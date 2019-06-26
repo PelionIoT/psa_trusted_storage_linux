@@ -9,6 +9,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
+ * This file is a modified version of mbed-crypto/library/psa_its_file.c v1.1.0d0. The
+ * minimal modifications are as follows:
+ * - Modification/removal of conditionally included header files specific to the
+ *   mbedtls project.
+ * - Search/replace _ITS_-> _STORAGE_, _its_ -> _ps_, etc.
+ * - Modification implement protected_storage.h v1.0 e.g. updating get() method.
  */
 #include "config.h"
 

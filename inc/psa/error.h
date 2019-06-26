@@ -9,6 +9,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
+ * This file version is from the v1.1.0d0 release.
  */
 
 #ifndef PSA_STORAGE_ERROR_H

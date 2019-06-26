@@ -18,8 +18,9 @@ INSTALL = install
 RM = rm -f
 
 
-LOCAL_CFLAGS=-fPIC -Wall -Wextra -O2 -g -I../inc
-LOCAL_LDFLAGS=-shared
+CFLAGS ?= -O2 -g
+LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
+LOCAL_LDFLAGS ?= -shared
 TARGET_NAME = libpsastorage
 
 TARGET_LIB = $(TARGET_NAME).so
@@ -45,8 +46,8 @@ include $(SRCS:.c=.d)
 
 .PHONY: clean
 clean:
-	-${RM} ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d)
+	${RM} ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d)
 
 .PHONY: install
 install:
-	$(INSTALL) -D $(TARGET_LIB) -t $(LIBDIR)
+	$(INSTALL) -D $(TARGET_LIB) -t $(libdir)

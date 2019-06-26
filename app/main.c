@@ -9,6 +9,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  *
+ * This file is a modified version of mbed-crypto/test/test_suite_psa_its.c
+ * v1.1.0d0, which is generated from the test data file
+ * test_suite_psa_its.data, the function file test_suite_psa_its.function,
+ * and test framework code. The modifications are as follows:
+ * - Change the code so to be independent of an external data file i.e.
+ *   integrate the test data within this source file.
+ * - Remove redundant code.
  */
 
 /*

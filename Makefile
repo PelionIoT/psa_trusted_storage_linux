@@ -13,11 +13,12 @@
 # <topdir>/Makefile
 #  Top level Makefile to build the libpsastorage project
 
-# PREFIX_DEFAULT is the default installation directory prefix (see Autotools documentation).
-PREFIX_DEFAULT?=/usr/local
-BINDIR?=$(PREFIX_DEFAULT)/bin
-LIBDIR?=$(PREFIX_DEFAULT)/lib
-INCLUDEDIR?=$(PREFIX_DEFAULT)/include/psa
+prefix_default = usr
+prefix ?= /$(prefix_default)/local
+bindir ?= $(prefix)/bin
+libdir ?= $(prefix)/lib
+includedir ?= $(prefix)/include
+PSA_INCLUDEDIR = $(includedir)/psa
 
 # tool symbols
 INSTALL = install
@@ -37,7 +38,7 @@ lib:
 
 .PHONY: clean
 clean: clean_app clean_lib
-	if [ -d "usr" ]; then ${RMR} usr; fi
+	${RMR} $(prefix_default)
 
 
 .PHONY: clean_app
@@ -50,14 +51,14 @@ clean_lib:
 
 .PHONY: install
 install: install_app install_lib
-	install -D inc/psa/protected_storage.h -t $(INCLUDEDIR)
-	install -D inc/psa/storage_common.h -t $(INCLUDEDIR)
-	install -D inc/psa/error.h -t $(INCLUDEDIR)
+	$(INSTALL) -D inc/psa/protected_storage.h -t $(PSA_INCLUDEDIR)
+	$(INSTALL) -D inc/psa/storage_common.h -t $(PSA_INCLUDEDIR)
+	$(INSTALL) -D inc/psa/error.h -t $(PSA_INCLUDEDIR)
 
 .PHONY: install_app
 install_app:
-	$(MAKE) -C app install BINDIR=$(BINDIR)
+	$(MAKE) -C app install bindir=$(bindir)
 
 .PHONY: install_lib
 install_lib:
-	$(MAKE) -C lib install LIBDIR=$(LIBDIR)
+	$(MAKE) -C lib install libdir=$(libdir)

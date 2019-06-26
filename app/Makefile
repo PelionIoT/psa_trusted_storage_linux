@@ -22,17 +22,17 @@ RM = rm -f
 TARGET_APP = psa-storage-example-app
 
 
-LOCAL_CFLAGS ?= -O2 -Wall -W -Wdeclaration-after-statement -I../inc
+CFLAGS ?= -O2 -g
+LOCAL_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -I../inc
 LOCAL_LDFLAGS = -L../lib -lpsastorage
 
 SRCS = main.c
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
-all: app
+all: $(TARGET_APP)
 
-.PHONY: app
-app: $(OBJS)
+$(TARGET_APP): $(OBJS)
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) $(OBJS) $(LDFLAGS) $(LOCAL_LDFLAGS) -o $(TARGET_APP)
 
 .c.o:
@@ -44,5 +44,4 @@ clean:
 
 .PHONY: install
 install:
-	echo BINDIR=$(BINDIR)
-	$(INSTALL) -D $(TARGET_APP) -t $(BINDIR) 
+	$(INSTALL) -D $(TARGET_APP) -t $(bindir) 

@@ -24,6 +24,8 @@
  *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
+ *
+ *  This file version is at sha 1169353e647be75d52e45715d87ec070c68df100.
  */
 
 /** @file

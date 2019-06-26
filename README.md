@@ -32,7 +32,7 @@ make CC=arm-linux-gnueabi-gcc AR=arm-linux-gnueabi-ar
 To install the build artifacts in the `usr/local` sub-directory of the top-level directory, do the `make install` command as follows:
 
 ```
-make install PREFIX_DEFAULT=${PWD}/usr/local/
+make install prefix=${PWD}/usr/local/
 ```
 
 After installation the example program will be available in `usr/local/bin`. To run the program do the following:
