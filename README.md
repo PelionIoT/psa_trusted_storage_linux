@@ -2,7 +2,7 @@
 
 ## Summary
 
-The PSA storage library is a reference implementation of the protected storage interface of the Arm Platform Security Architecture (PSA). This is a preview release of provided for evaluation purposes only.
+The PSA storage library is a reference implementation of the protected storage interface of the Arm Platform Security Architecture (PSA). This is a preview release provided for evaluation purposes only.
 
 PSA storage library is distributed under the Apache License, version 2.0. See the LICENSE file for the full text of the license.
 
