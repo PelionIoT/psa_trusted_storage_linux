@@ -22,7 +22,6 @@
 #include <windows.h>
 #endif
 
-#include "psa/psa_storage_types.h"
 #include "psa/protected_storage.h"
 
 #include <limits.h>
@@ -110,7 +109,7 @@ static psa_status_t psa_its_read_file( psa_storage_uid_t uid,
 }
 
 psa_status_t psa_ps_get_info( psa_storage_uid_t uid,
-                               struct psa_storage_info_t *p_info )
+                              struct psa_storage_info_t *p_info )
 {
     psa_status_t status;
     FILE *stream = NULL;
@@ -121,10 +120,10 @@ psa_status_t psa_ps_get_info( psa_storage_uid_t uid,
 }
 
 psa_status_t psa_ps_get( psa_storage_uid_t uid,
-                          uint32_t data_offset,
-                          uint32_t data_length,
-                          void *p_data,
-                          uint32_t *p_data_length )
+                         size_t data_offset,
+                         size_t data_size,
+                         void *p_data,
+                         size_t *p_data_length )
 {
     psa_status_t status;
     FILE *stream = NULL;
@@ -135,13 +134,13 @@ psa_status_t psa_ps_get( psa_storage_uid_t uid,
     if( status != PSA_SUCCESS )
         goto exit;
     status = PSA_ERROR_INVALID_ARGUMENT;
-    if( data_offset + data_length < data_offset )
+    if( data_offset + data_size < data_offset )
         goto exit;
 #if SIZE_MAX < 0xffffffff
-    if( data_offset + data_length > SIZE_MAX )
+    if( data_offset + data_size > SIZE_MAX )
         goto exit;
 #endif
-    if( data_offset + data_length > info.size )
+    if( data_offset + data_size > info.size )
         goto exit;
 
     status = PSA_ERROR_STORAGE_FAILURE;
@@ -155,8 +154,8 @@ psa_status_t psa_ps_get( psa_storage_uid_t uid,
 #endif
     if( fseek( stream, data_offset, SEEK_CUR ) != 0 )
         goto exit;
-    n = fread( p_data, 1, data_length, stream );
-    if( n != data_length )
+    n = fread( p_data, 1, data_size, stream );
+    if( n != data_size )
         goto exit;
     if( p_data_length )
         *p_data_length = n;
@@ -169,7 +168,7 @@ exit:
 }
 
 psa_status_t psa_ps_set( psa_storage_uid_t uid,
-                          uint32_t data_length,
+                          size_t data_length,
                           const void *p_data,
                           psa_storage_create_flags_t create_flags )
 {
