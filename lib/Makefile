@@ -26,7 +26,8 @@ TARGET_NAME = libpsastorage
 TARGET_LIB = $(TARGET_NAME).so
 
 SRCS = \
-	protected_storage.c
+	protected_storage.c \
+	internal_trusted_storage.c
 
 OBJS = $(SRCS:.c=.o)
 
