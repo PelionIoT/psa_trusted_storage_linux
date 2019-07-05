@@ -467,7 +467,6 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
 
 #define TEST_SUITE_ACTIVE
 
-#include "psa/psa_storage_types.h"
 #include "psa/protected_storage.h"
 
 /* Internal definitions of the implementation, copied for the sake of
@@ -521,14 +520,14 @@ static psa_status_t psa_ps_set_wrap( psa_storage_uid_t uid,
 {
     if( uid_max != (psa_storage_uid_t)( -1 ) && uid_max < uid )
         uid_max = uid;
-    return( psa_ps_set( uid, data_length, p_data, create_flags ) );
+    return( psa_ps_set( uid, (size_t) data_length, p_data, create_flags ) );
 }
 
 void test_set_get_remove( int uid_arg, int flags_arg, data_t *data )
 {
     psa_storage_uid_t uid = uid_arg;
     uint32_t flags = flags_arg;
-    uint32_t ret_len = 0;
+    size_t ret_len = 0;
     struct psa_storage_info_t info;
     unsigned char *buffer = NULL;
 
@@ -562,7 +561,7 @@ void test_set_overwrite( int uid_arg,
     psa_storage_uid_t uid = uid_arg;
     uint32_t flags1 = flags1_arg;
     uint32_t flags2 = flags2_arg;
-    uint32_t ret_len = 0;
+    size_t ret_len = 0;
     struct psa_storage_info_t info;
     unsigned char *buffer = NULL;
 
@@ -603,7 +602,7 @@ void test_set_multiple( int first_id, int count )
     psa_storage_uid_t uid;
     char stored[40];
     char retrieved[40];
-    uint32_t ret_len = 0;
+    size_t ret_len = 0;
 
     memset( stored, '.', sizeof( stored ) );
     for( uid = uid0; uid < uid0 + count; uid++ )
@@ -670,7 +669,7 @@ void test_get_at( int uid_arg, data_t *data,
     size_t length = length_arg >= 0 ? length_arg : 0;
     unsigned char *trailer;
     size_t i;
-    uint32_t ret_len = 0;
+    size_t ret_len = 0;
 
     ASSERT_ALLOC( buffer, length + 16 );
     trailer = buffer + length;
