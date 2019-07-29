@@ -217,17 +217,35 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     FILE *stream = NULL;
     psa_its_file_header_t header;
     size_t n;
+    struct psa_storage_info_t info;
     struct stat st = { 0 };
     int ret = 0;
+
+    /* As all files are stored on encrypted file system, a request for no confidentiality
+     * is upgraded to confidentiality. Hence if set the PSA_STORAGE_FLAG_NO_CONFIDENTIALITY
+     * bit is cleared. */
+    if( create_flags & PSA_STORAGE_FLAG_NO_CONFIDENTIALITY )
+        create_flags &= ~PSA_STORAGE_FLAG_NO_CONFIDENTIALITY;
 
     /* Check if sub-prefix directory for storing files has been created and if not
      * create it. */
     subprefix = api == PSA_CS_API_PS ? PSA_CS_PS_SUBPREFIX : subprefix;
     snprintf( filename, PSA_CS_FILENAME_LENGTH, "%s%s", PSA_CS_PREFIX, subprefix );
-    if ( stat( filename, &st ) == -1 ) {
+    if ( stat( filename, &st ) == -1 )
+    {
         ret = mkdir( filename, 0700 );
         if ( ret != 0 )
             return( PSA_ERROR_GENERIC_ERROR );
+    }
+
+    /* If the file object already exists and PSA_STORAGE_FLAG_WRITE_ONCE is set then do
+     * not update the object. */
+    status = psa_its_read_file( uid, &info, &stream, api );
+    if( status == PSA_SUCCESS )
+    {
+        fclose( stream );
+        if( info.flags & PSA_STORAGE_FLAG_WRITE_ONCE )
+            return ( PSA_ERROR_NOT_PERMITTED );
     }
 
     magic_string = api == PSA_CS_API_PS ? PSA_PROTECTED_STORAGE_MAGIC_STRING : magic_string;
@@ -246,7 +264,10 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
         goto exit;
     stream = fopen( PSA_CS_TEMP, "wb" );
     if( stream == NULL )
+    {
+        status = PSA_ERROR_GENERIC_ERROR;
         goto exit;
+    }
 
     status = PSA_ERROR_INSUFFICIENT_STORAGE;
     n = fwrite( &header, 1, sizeof( header ), stream );
@@ -278,15 +299,26 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     psa_status_t status = PSA_ERROR_STORAGE_FAILURE;
     char filename[PSA_CS_FILENAME_LENGTH];
     FILE *stream;
+    struct psa_storage_info_t info;
 
     status = psa_its_fill_filename( uid, filename, api );
     if( status != PSA_SUCCESS )
-        return( status );
-    stream = fopen( filename, "rb" );
-    if( stream == NULL )
-        return( PSA_ERROR_DOES_NOT_EXIST );
+        goto exit;
+    status = psa_its_read_file( uid, &info, &stream, api );
+    if( status != PSA_SUCCESS )
+        goto exit;
+    if( info.flags & PSA_STORAGE_FLAG_WRITE_ONCE )
+    {
+        status = PSA_ERROR_NOT_PERMITTED;
+        goto exit;
+    }
     fclose( stream );
+    stream = NULL;
     if( remove( filename ) != 0 )
-        return( PSA_ERROR_STORAGE_FAILURE );
-    return( PSA_SUCCESS );
+        status = PSA_ERROR_STORAGE_FAILURE;
+
+exit:
+    if( stream != NULL )
+        fclose( stream );
+    return( status );
 }
