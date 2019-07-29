@@ -26,6 +26,7 @@ TARGET_NAME = libpsastorage
 TARGET_LIB = $(TARGET_NAME).so
 
 SRCS = \
+	common_storage.c \
 	protected_storage.c \
 	internal_trusted_storage.c
 
