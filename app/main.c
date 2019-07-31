@@ -609,7 +609,7 @@ void test_set_multiple( int first_id, int count )
     {
         mbedtls_snprintf( stored, sizeof( stored ),
                           "Content of file 0x%08lx", (unsigned long) uid );
-        PSA_ASSERT( psa_ps_set_wrap( uid, sizeof( stored ), stored, 0 ) );
+        PSA_ASSERT( psa_ps_set_wrap( uid, sizeof( stored ), stored, PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION ) );
     }
 
     for( uid = uid0; uid < uid0 + count; uid++ )
@@ -640,7 +640,7 @@ void test_nonexistent( int uid_arg, int create_and_remove )
 
     if( create_and_remove )
     {
-        PSA_ASSERT( psa_ps_set_wrap( uid, 0, NULL, 0 ) );
+        PSA_ASSERT( psa_ps_set_wrap( uid, 0, NULL, PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION ) );
         PSA_ASSERT( psa_ps_remove( uid ) );
     }
 
@@ -675,7 +675,7 @@ void test_get_at( int uid_arg, data_t *data,
     trailer = buffer + length;
     memset( trailer, '-', 16 );
 
-    PSA_ASSERT( psa_ps_set_wrap( uid, data->len, data->x, 0 ) );
+    PSA_ASSERT( psa_ps_set_wrap( uid, data->len, data->x, PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION ) );
 
     status = psa_ps_get( uid, offset, length_arg, buffer, &ret_len );
     TEST_ASSERT( status == (psa_status_t) expected_status );
@@ -697,6 +697,68 @@ void test_get_at_wrapper( void ** params )
 
     test_get_at( *( (int *) params[0] ), &data1, *( (int *) params[3] ), *( (int *) params[4] ), *( (int *) params[5] ) );
 }
+
+
+
+void test_flags( int uid_arg, int flags_arg, data_t *data )
+{
+    psa_storage_uid_t uid = uid_arg;
+    uint32_t flags = flags_arg;
+    size_t ret_len = 0;
+    struct psa_storage_info_t info;
+    unsigned char *buffer = NULL;
+    psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+
+
+    ASSERT_ALLOC( buffer, data->len );
+
+    /* Although there is no replay protection, check the behaviour that replay protection
+     * is provided. */
+    flags = PSA_STORAGE_FLAG_NONE;
+    status = psa_ps_set_wrap( uid, data->len, data->x, flags );
+    TEST_ASSERT( status == PSA_SUCCESS );
+
+    /* Check PSA_STORAGE_FLAG_NO_CONFIDENTIALITY is handled. Requests for
+     * PSA_STORAGE_FLAG_NO_CONFIDENTIALITY are upgraded to confidentiality
+     * as all files are stored on an encrypted filesystem. */
+    flags = PSA_STORAGE_FLAG_NO_CONFIDENTIALITY | PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION;
+    PSA_ASSERT( psa_ps_set_wrap( uid, data->len, data->x, flags ) );
+    PSA_ASSERT( psa_ps_get_info( uid, &info ) );
+    TEST_ASSERT( info.size == data->len );
+    flags &= ~PSA_STORAGE_FLAG_NO_CONFIDENTIALITY;
+    TEST_ASSERT( info.flags == flags );
+    PSA_ASSERT( psa_ps_get( uid, 0, data->len, buffer, &ret_len ) );
+    ASSERT_COMPARE( data->x, data->len, buffer, ret_len );
+    PSA_ASSERT( psa_ps_remove( uid ) );
+
+    /* Check PSA_STORAGE_FLAG_WRITE_ONCE is honoured and that an objected created
+     * with the flag set cannot be deleted. */
+    flags = PSA_STORAGE_FLAG_WRITE_ONCE | PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION;
+    PSA_ASSERT( psa_ps_set_wrap( uid, data->len, data->x, flags ) );
+    PSA_ASSERT( psa_ps_get_info( uid, &info ) );
+    TEST_ASSERT( info.size == data->len );
+    TEST_ASSERT( info.flags == flags );
+    PSA_ASSERT( psa_ps_get( uid, 0, data->len, buffer, &ret_len ) );
+    ASSERT_COMPARE( data->x, data->len, buffer, ret_len );
+    status = psa_ps_remove( uid );
+    TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
+    /* Check that the PSA_STORAGE_FLAG_WRITE_ONCE attribute cannot be written again */
+    memset( buffer, 1, data->len );
+    status = psa_ps_set_wrap( uid, data->len, buffer, flags );
+    TEST_ASSERT( status == PSA_ERROR_NOT_PERMITTED );
+
+exit:
+    mbedtls_free( buffer );
+    cleanup( );
+}
+
+void test_flags_wrapper( void ** params )
+{
+    data_t data2 = {(uint8_t *) params[2], *( (uint32_t *) params[3] )};
+
+    test_flags( *( (int *) params[0] ), *( (int *) params[1] ), &data2 );
+}
+
 
 
 /*----------------------------------------------------------------------------*/
@@ -801,14 +863,16 @@ TestWrapper_t test_funcs[] =
 /* Function Id: 0 */
 
     test_set_get_remove_wrapper,
-	/* Function Id: 1 */
+    /* Function Id: 1 */
     test_set_overwrite_wrapper,
-	/* Function Id: 2 */
+    /* Function Id: 2 */
     test_set_multiple_wrapper,
-	/* Function Id: 3 */
+    /* Function Id: 3 */
     test_nonexistent_wrapper,
-	/* Function Id: 4 */
+    /* Function Id: 4 */
     test_get_at_wrapper,
+    /* Function Id: 5 */
+    test_flags_wrapper,
 };
 
 /**
@@ -1214,16 +1278,75 @@ unsigned int mbl_crypto_storage_test_suite_psa_ps_datax_idx = 0;    /**/
 const char* mbl_crypto_storage_test_suite_psa_ps_datax_str[] = {
     "Set/get/remove 0 bytes",
     "0:int:0:int:0:hex:\"\"",
+    "Set/get/remove 42 bytes",
+    "0:int:0:int:0:hex:\"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829\"",
     "Set/get/remove 1000 bytes",
     "0:int:0:int:0:hex:\"6a07ecfcc7c7bfe0129d56d2dcf2955a12845b9e6e0034b0ed7226764261c6222a07b9f654deb682130eb1cd07ed298324e60a46f9c76c8a5a0be000c69e93dd81054ca21fbc6190cef7745e9d5436f70e20e10cbf111d1d40c9ceb83be108775199d81abaf0fecfe30eaa08e7ed82517cba939de4449f7ac5c730fcbbf56e691640b0129db0e178045dd2034262de9138873d9bdca57685146a3d516ff13c29e6628a00097435a8e10fef7faff62d2963c303a93793e2211d8604556fec08cd59c0f5bd1f22eea64be13e88b3f454781e83fe6e771d3d81eb2fbe2021e276f42a93db5343d767d854115e74f5e129a8036b1e81aced9872709d515e00bcf2098ccdee23006b0e836b27dc8aaf30f53fe58a31a6408abb79b13098c22e262a98040f9b09809a3b43bd42eb01cf1d17bbc8b4dfe51fa6573d4d8741943e3ae71a649e194c1218f2e20556c7d8cfe8c64d8cc1aa94531fbf638768c7d19b3c079299cf4f26ed3f964efb8fd23d82b4157a51f46da11156c74e2d6e2fd788869ebb52429e12a82da2ba083e2e74565026162f29ca22582da72a2698e7c5d958b919bc2cdfe12f50364ccfed30efd5cd120a7d5f196b2bd7f911bb44d5871eb3dedcd70ece7faf464988f9fe361f23d7244b1e08bee921d0f28bdb4912675809d099876d4d15b7d13ece356e1f2a5dce64feb3d6749a07a4f2b7721190e17a9ab2966e48b6d25187070b81eb45b1c44608b2f0e175958ba57fcf1b2cd145eea5fd4de858d157ddac69dfbb5d5d6f0c1691b0fae5a143b6e58cdf5000f28d74b3322670ed11e740c828c7bfad4e2f392012da3ac931ea26ed15fd003e604071f5900c6e1329d021805d50da9f1e732a49bcc292d9f8e07737cfd59442e8d7aaa813b18183a68e22bf6b4519545dd7d2d519db3652be4131bad4f4b0625dbaa749e979f6ee8c1b97803cb50a2fa20dc883eac932a824b777b226e15294de6a80be3ddef41478fe18172d64407a004de6bae18bc60e90c902c1cbb0e1633395b42391f5011be0d480541987609b0cd8d902ea29f86f73e7362340119323eb0ea4f672b70d6e9a9df5235f9f1965f5cb0c2998c5a7f4754e83eeda5d95fefbbaaa0875fe37b7ca461e7281cc5479162627c5a709b45fd9ddcde4dfb40659e1d70fa7361d9fc7de24f9b8b13259423fdae4dbb98d691db687467a5a7eb027a4a0552a03e430ac8a32de0c30160ba60a036d6b9db2d6182193283337b92e7438dc5d6eb4fa00200d8efa9127f1c3a32ac8e202262773aaa5a965c6b8035b2e5706c32a55511560429ddf1df4ac34076b7eedd9cf94b6915a894fdd9084ffe3db0e7040f382c3cd04f0484595de95865c36b6bf20f46a78cdfb37228acbeb218de798b9586f6d99a0cbae47e80d\"",
+    "Set/get/remove with flags",
+    "0:int:0:int:0x12345678:hex:\"abcdef\"",
+    "Overwrite 0 -> 3",
+    "1:int:0:int:0x12345678:hex:\"\":int:0x01020304:hex:\"abcdef\"",
+    "Overwrite 3 -> 0",
+    "1:int:0:int:0x12345678:hex:\"abcdef\":int:0x01020304:hex:\"\"",
+    "Overwrite 3 -> 3",
+    "1:int:0:int:0x12345678:hex:\"123456\":int:0x01020304:hex:\"abcdef\"",
+    "Overwrite 3 -> 18",
+    "1:int:0:int:0x12345678:hex:\"abcdef\":int:0x01020304:hex:\"404142434445464748494a4b4c4d4e4f5051\"",
     "Overwrite 18 -> 3",
     "1:int:0:int:0x12345678:hex:\"404142434445464748494a4b4c4d4e4f5051\":int:0x01020304:hex:\"abcdef\"",
     "Multiple files",
     "2:int:0:int:5",
+    "Non-existent file",
+    "3:int:0:int:0",
+    "Removed file",
+    "3:int:0:int:1",
+    "Get 0 bytes of 10 at 10",
+    "4:int:0:hex:\"40414243444546474849\":int:10:int:0:exp:0",
+    "Get 1 byte of 10 at 9",
+    "4:int:0:hex:\"40414243444546474849\":int:9:int:1:exp:0",
+    "Get 0 bytes of 10 at 0",
+    "4:int:0:hex:\"40414243444546474849\":int:0:int:0:exp:0",
+    "Get 1 byte of 10 at 0",
+    "4:int:0:hex:\"40414243444546474849\":int:0:int:1:exp:0",
+    "Get 2 bytes of 10 at 1",
+    "4:int:0:hex:\"40414243444546474849\":int:1:int:2:exp:0",
+    "Get 1 byte of 10 at 10: out of range",
+    "4:int:0:hex:\"40414243444546474849\":int:10:int:1:exp:1",
+    "Get 1 byte of 10 at 11: out of range",
+    "4:int:0:hex:\"40414243444546474849\":int:11:int:1:exp:1",
+    "Get 0 bytes of 10 at 11: out of range",
+    "4:int:0:hex:\"40414243444546474849\":int:11:int:0:exp:1",
+    "Get -1 byte of 10 at 10: out of range",
+    "4:int:0:hex:\"40414243444546474849\":int:10:exp:2:exp:1",
     "Get 1 byte of 10 at -1: out of range",
     "4:int:0:hex:\"40414243444546474849\":exp:2:int:1:exp:1",
+    "Flags test",
+    "5:int:100:int:0:hex:\"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829\"",
+    /* A selection of the above tests with PSA_STORAGE_FLAG_NO_REPLAY_PROTECTION set. */
+    "Set/get/remove 0 bytes",
+    "0:int:0:int:4:hex:\"\"",
+    "Set/get/remove 42 bytes",
+    "0:int:0:int:4:hex:\"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20212223242526272829\"",
+    "Set/get/remove 1000 bytes",
+    "0:int:0:int:4:hex:\"6a07ecfcc7c7bfe0129d56d2dcf2955a12845b9e6e0034b0ed7226764261c6222a07b9f654deb682130eb1cd07ed298324e60a46f9c76c8a5a0be000c69e93dd81054ca21fbc6190cef7745e9d5436f70e20e10cbf111d1d40c9ceb83be108775199d81abaf0fecfe30eaa08e7ed82517cba939de4449f7ac5c730fcbbf56e691640b0129db0e178045dd2034262de9138873d9bdca57685146a3d516ff13c29e6628a00097435a8e10fef7faff62d2963c303a93793e2211d8604556fec08cd59c0f5bd1f22eea64be13e88b3f454781e83fe6e771d3d81eb2fbe2021e276f42a93db5343d767d854115e74f5e129a8036b1e81aced9872709d515e00bcf2098ccdee23006b0e836b27dc8aaf30f53fe58a31a6408abb79b13098c22e262a98040f9b09809a3b43bd42eb01cf1d17bbc8b4dfe51fa6573d4d8741943e3ae71a649e194c1218f2e20556c7d8cfe8c64d8cc1aa94531fbf638768c7d19b3c079299cf4f26ed3f964efb8fd23d82b4157a51f46da11156c74e2d6e2fd788869ebb52429e12a82da2ba083e2e74565026162f29ca22582da72a2698e7c5d958b919bc2cdfe12f50364ccfed30efd5cd120a7d5f196b2bd7f911bb44d5871eb3dedcd70ece7faf464988f9fe361f23d7244b1e08bee921d0f28bdb4912675809d099876d4d15b7d13ece356e1f2a5dce64feb3d6749a07a4f2b7721190e17a9ab2966e48b6d25187070b81eb45b1c44608b2f0e175958ba57fcf1b2cd145eea5fd4de858d157ddac69dfbb5d5d6f0c1691b0fae5a143b6e58cdf5000f28d74b3322670ed11e740c828c7bfad4e2f392012da3ac931ea26ed15fd003e604071f5900c6e1329d021805d50da9f1e732a49bcc292d9f8e07737cfd59442e8d7aaa813b18183a68e22bf6b4519545dd7d2d519db3652be4131bad4f4b0625dbaa749e979f6ee8c1b97803cb50a2fa20dc883eac932a824b777b226e15294de6a80be3ddef41478fe18172d64407a004de6bae18bc60e90c902c1cbb0e1633395b42391f5011be0d480541987609b0cd8d902ea29f86f73e7362340119323eb0ea4f672b70d6e9a9df5235f9f1965f5cb0c2998c5a7f4754e83eeda5d95fefbbaaa0875fe37b7ca461e7281cc5479162627c5a709b45fd9ddcde4dfb40659e1d70fa7361d9fc7de24f9b8b13259423fdae4dbb98d691db687467a5a7eb027a4a0552a03e430ac8a32de0c30160ba60a036d6b9db2d6182193283337b92e7438dc5d6eb4fa00200d8efa9127f1c3a32ac8e202262773aaa5a965c6b8035b2e5706c32a55511560429ddf1df4ac34076b7eedd9cf94b6915a894fdd9084ffe3db0e7040f382c3cd04f0484595de95865c36b6bf20f46a78cdfb37228acbeb218de798b9586f6d99a0cbae47e80d\"",
+    "Set/get/remove with flags",
+    "0:int:0:int:0x12345674:hex:\"abcdef\"",
+    "Overwrite 0 -> 3",
+    "1:int:0:int:0x12345674:hex:\"\":int:0x01020304:hex:\"abcdef\"",
+    "Overwrite 3 -> 0",
+    "1:int:0:int:0x12345674:hex:\"abcdef\":int:0x01020304:hex:\"\"",
+    "Overwrite 3 -> 3",
+    "1:int:0:int:0x12345674:hex:\"123456\":int:0x01020304:hex:\"abcdef\"",
+    "Overwrite 3 -> 18",
+    "1:int:0:int:0x12345674:hex:\"abcdef\":int:0x01020304:hex:\"404142434445464748494a4b4c4d4e4f5051\"",
+    "Overwrite 18 -> 3",
+    "1:int:0:int:0x12345674:hex:\"404142434445464748494a4b4c4d4e4f5051\":int:0x01020304:hex:\"abcdef\"",
+    "Multiple files",
+    "2:int:0:int:5",
+    "Non-existent file",
     NULL
 };
+
 
 /**
  * \brief
