@@ -24,7 +24,7 @@ TARGET_APP = psa-storage-example-app
 
 CFLAGS ?= -O2 -g
 LOCAL_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -I../inc
-LOCAL_LDFLAGS = -L../lib -lpsastorage
+LOCAL_LDFLAGS = ../lib/libpsastorage.so.$(major)
 
 SRCS = main.c
 OBJS = $(SRCS:.c=.o)
