@@ -19,9 +19,6 @@ bindir ?= $(prefix)/bin
 libdir ?= $(prefix)/lib
 includedir ?= $(prefix)/include
 PSA_INCLUDEDIR = $(includedir)/psa
-major ?= 1
-minor ?= 0
-rel  ?= 0
 
 # tool symbols
 INSTALL = install
@@ -33,11 +30,11 @@ all: lib app
 
 .PHONY: app
 app: lib
-	$(MAKE) -C app major=$(major) minor=$(minor) rel=$(rel)
+	$(MAKE) -C app
 
 .PHONY: lib
 lib:
-	$(MAKE) -C lib major=$(major) minor=$(minor) rel=$(rel)
+	$(MAKE) -C lib
 
 .PHONY: clean
 clean: clean_app clean_lib
@@ -46,11 +43,11 @@ clean: clean_app clean_lib
 
 .PHONY: clean_app
 clean_app:
-	$(MAKE) -C app clean major=$(major) minor=$(minor) rel=$(rel)
+	$(MAKE) -C app clean
 
 .PHONY: clean_lib
 clean_lib:
-	$(MAKE) -C lib clean major=$(major) minor=$(minor) rel=$(rel)
+	$(MAKE) -C lib clean
 
 .PHONY: install
 install: install_app install_lib
@@ -64,4 +61,4 @@ install_app:
 
 .PHONY: install_lib
 install_lib:
-	$(MAKE) -C lib install libdir=$(libdir) major=$(major) minor=$(minor) rel=$(rel)
+	$(MAKE) -C lib install libdir=$(libdir)
