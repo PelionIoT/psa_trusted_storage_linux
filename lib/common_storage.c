@@ -164,7 +164,7 @@ psa_status_t psa_cs_get( psa_storage_uid_t uid,
 {
     psa_status_t status;
     FILE *stream = NULL;
-    size_t n;
+    size_t n = 0;
     struct psa_storage_info_t info;
 
     status = psa_its_read_file( uid, &info, &stream, api );
@@ -194,11 +194,15 @@ psa_status_t psa_cs_get( psa_storage_uid_t uid,
     n = fread( p_data, 1, data_size, stream );
     if( n != data_size )
         goto exit;
-    if( p_data_length )
-        *p_data_length = n;
     status = PSA_SUCCESS;
 
 exit:
+    /* set the length of data written even if no data was written, as is the
+     * case in error scenarios. */
+    if( p_data_length )
+    {
+        *p_data_length = n;
+    }
     if( stream != NULL )
         fclose( stream );
     return( status );
