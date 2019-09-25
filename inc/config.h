@@ -22,7 +22,9 @@
  * PSA_STORAGE_FILE_C_STORAGE_PREFIX "/home/username/"
  * (note the appended "/").
  */
+#if ! defined ( PSA_STORAGE_FILE_C_STORAGE_PREFIX )
 #define PSA_STORAGE_FILE_C_STORAGE_PREFIX ""
+#endif
 
 
 /* \} name SECTION: mbed TLS modules */
@@ -33,8 +35,8 @@
  *
  */
 
-#if defined(MBEDTLS_USER_CONFIG_FILE)
-#include MBEDTLS_USER_CONFIG_FILE
+#if defined(PSA_STORAGE_USER_CONFIG_FILE)
+#include PSA_STORAGE_USER_CONFIG_FILE
 #endif
 
 #endif /* PSA_STORAGE_CONFIG_H */

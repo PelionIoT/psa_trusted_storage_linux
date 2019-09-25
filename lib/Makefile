@@ -23,9 +23,12 @@ LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
 LOCAL_LDFLAGS ?= -shared
 TARGET_NAME = libpsastorage
 
-TARGET_LIB = $(TARGET_NAME).so
+SOLINKERNAME = $(TARGET_NAME).so
+SONAME = $(TARGET_NAME).so.$(major)
+TARGET_LIB = $(SONAME).$(minor).$(rel)
 
 SRCS = \
+	common_storage.c \
 	protected_storage.c \
 	internal_trusted_storage.c
 
@@ -36,6 +39,7 @@ all: ${TARGET_LIB}
 
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} $(LOCAL_LDFLAGS) -o $@ $^
+	ln -s $(TARGET_LIB) $(SONAME)
 
 $(SRCS:.c=.d):%.d:%.c
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -MM $< >$@
@@ -47,8 +51,10 @@ include $(SRCS:.c=.d)
 
 .PHONY: clean
 clean:
-	${RM} ${TARGET_LIB} ${OBJS} $(SRCS:.c=.d)
+	$(RM) $(TARGET_LIB) $(SONAME) $(SOLINKERNAME) $(OBJS) $(SRCS:.c=.d)
 
 .PHONY: install
 install:
 	$(INSTALL) -D $(TARGET_LIB) -t $(libdir)
+	cd $(libdir) && ln -s $(TARGET_LIB) $(SONAME)
+	cd $(libdir) && ln -s $(SONAME) $(SOLINKERNAME)
