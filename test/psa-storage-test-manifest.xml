@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2018-2019, Arm Limited and Contributors. All rights reserved. -->
+<!-- SPDX-License-Identifier: MIT -->
+<manifest>
+
+  <remote fetch="ssh://git@github.com" name="github"/>
+  <default revision="master" sync-j="4"/>
+
+  <project name="armmbed/psa_trusted_storage_linux" path="psa_trusted_storage_linux" remote="github" revision="sdh_iotmbl_2532">
+    <linkfile dest="Makefile" src="test/Makefile"/>
+  </project>
+  <project name="simonqhughes/psa-arch-tests" path="psa-arch-tests" remote="github" revision="sdh_iotmbl_2481"/>
+  <project name="armmbed/mbed-crypto" path="mbed-crypto" remote="github" revision="development"/>
+
+</manifest>
