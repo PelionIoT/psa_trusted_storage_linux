@@ -39,7 +39,7 @@ all: ${TARGET_LIB}
 
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} $(LOCAL_LDFLAGS) -o $@ $^
-	ln -s $(TARGET_LIB) $(SONAME)
+	ln -sf $(TARGET_LIB) $(SONAME)
 
 $(SRCS:.c=.d):%.d:%.c
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -MM $< >$@
@@ -56,5 +56,5 @@ clean:
 .PHONY: install
 install:
 	$(INSTALL) -D $(TARGET_LIB) -t $(libdir)
-	cd $(libdir) && ln -s $(TARGET_LIB) $(SONAME)
-	cd $(libdir) && ln -s $(SONAME) $(SOLINKERNAME)
+	cd $(libdir) && ln -sf $(TARGET_LIB) $(SONAME)
+	cd $(libdir) && ln -sf $(SONAME) $(SOLINKERNAME)
