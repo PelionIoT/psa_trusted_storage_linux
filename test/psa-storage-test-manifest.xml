@@ -9,7 +9,7 @@
   <project name="armmbed/psa_trusted_storage_linux" path="psa_trusted_storage_linux" remote="github" revision="sdh_iotmbl_2532">
     <linkfile dest="Makefile" src="test/Makefile"/>
   </project>
-  <project name="simonqhughes/psa-arch-tests" path="psa-arch-tests" remote="github" revision="sdh_iotmbl_2481"/>
+  <project name="simonqhughes/psa-arch-tests" path="psa-arch-tests" remote="github" revision="sdh_iotmbl_2532"/>
   <project name="armmbed/mbed-crypto" path="mbed-crypto" remote="github" revision="development"/>
 
 </manifest>
