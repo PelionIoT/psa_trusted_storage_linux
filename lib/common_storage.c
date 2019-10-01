@@ -149,6 +149,13 @@ psa_status_t psa_cs_get_info( psa_storage_uid_t uid,
 {
     psa_status_t status;
     FILE *stream = NULL;
+
+    /* Assert the function contract that uid != 0 */
+    if(uid == PSA_STORATE_UID_INVALID_VALUE)
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
+
     status = psa_its_read_file( uid, p_info, &stream, api );
     if( stream != NULL )
         fclose( stream );
@@ -224,6 +231,12 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     struct psa_storage_info_t info;
     struct stat st = { 0 };
     int ret = 0;
+
+    /* Assert the function contract that uid != 0 */
+    if(uid == PSA_STORATE_UID_INVALID_VALUE)
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
     /* As all files are stored on encrypted file system, a request for no confidentiality
      * is upgraded to confidentiality. Hence if set the PSA_STORAGE_FLAG_NO_CONFIDENTIALITY
@@ -304,6 +317,12 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     char filename[PSA_CS_FILENAME_LENGTH];
     FILE *stream;
     struct psa_storage_info_t info;
+
+    /* Assert the function contract that uid != 0 */
+    if(uid == PSA_STORATE_UID_INVALID_VALUE)
+    {
+        return( PSA_ERROR_INVALID_ARGUMENT );
+    }
 
     status = psa_its_fill_filename( uid, filename, api );
     if( status != PSA_SUCCESS )
