@@ -38,5 +38,30 @@
 #define PSA_STORAGE_FILE_C_STORAGE_PREFIX ""
 #endif
 
+/**
+ * \def PSA_STORAGE_FILE_MAX
+ *
+ * Define the maximum number of file objects that can be created.
+ * This should be set to an appropriate value to support the application
+ * requirements whilst not exhausting available system storage resources.
+ * The total number of files is the sum of files allocated for both
+ * internal trusted storage and protected storage file objects.
+ */
+#if ! defined ( PSA_STORAGE_FILE_MAX )
+#define PSA_STORAGE_FILE_MAX 1000
+#endif
+
+/**
+ * \def PSA_STORAGE_MAX_SIZE
+ *
+ * Define the maximum total number of bytes allocated to objects.
+ * This is the sum of all created object sizes (for both internal trusted
+ * storage and protected storage file objects), not total file space
+ * for store objects. The default value is 16MB.
+ */
+#if ! defined ( PSA_STORAGE_MAX_SIZE )
+#define PSA_STORAGE_MAX_SIZE 0x01000000
+#endif
+
 
 #endif /* PSA_STORAGE_CONFIG_H */

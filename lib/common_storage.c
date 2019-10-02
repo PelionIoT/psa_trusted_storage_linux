@@ -83,6 +83,12 @@ typedef struct
     uint8_t flags[sizeof( psa_storage_create_flags_t )];
 } psa_its_file_header_t;
 
+/* Globale to record the number of file objects created. */
+static uint32_t psa_cs_num_file_objects = 0;
+
+/* Global to record total space requested. */
+static size_t psa_cs_total_size = 0;
+
 static psa_status_t psa_its_fill_filename( psa_storage_uid_t uid, char *filename, psa_cs_api_t api )
 {
     char *subprefix = PSA_CS_ITS_SUBPREFIX;
@@ -232,8 +238,15 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     struct stat st = { 0 };
     int ret = 0;
 
+    /* Check for resource/storage exhaustion */
+    if (  ! ( psa_cs_num_file_objects < PSA_STORAGE_FILE_MAX-1 )       ||
+            ( psa_cs_total_size + data_length > PSA_STORAGE_MAX_SIZE ) )
+    {
+        return ( PSA_ERROR_INSUFFICIENT_STORAGE );
+    }
+
     /* Assert the function contract that uid != 0 */
-    if(uid == PSA_STORATE_UID_INVALID_VALUE)
+    if ( uid == PSA_STORATE_UID_INVALID_VALUE )
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
@@ -294,6 +307,8 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     if( n != data_length )
         goto exit;
     status = PSA_SUCCESS;
+    psa_cs_num_file_objects++;
+    psa_cs_total_size += data_length;
 
 exit:
     if( stream != NULL )
@@ -308,7 +323,7 @@ exit:
             status = PSA_ERROR_STORAGE_FAILURE;
     }
     remove( PSA_CS_TEMP );
-    return( status );
+    return ( status );
 }
 
 psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
@@ -319,9 +334,9 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     struct psa_storage_info_t info;
 
     /* Assert the function contract that uid != 0 */
-    if(uid == PSA_STORATE_UID_INVALID_VALUE)
+    if ( uid == PSA_STORATE_UID_INVALID_VALUE )
     {
-        return( PSA_ERROR_INVALID_ARGUMENT );
+        return ( PSA_ERROR_INVALID_ARGUMENT );
     }
 
     status = psa_its_fill_filename( uid, filename, api );
@@ -338,7 +353,14 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     fclose( stream );
     stream = NULL;
     if( remove( filename ) != 0 )
+    {
         status = PSA_ERROR_STORAGE_FAILURE;
+    }
+    else
+    {
+        psa_cs_num_file_objects--;
+        psa_cs_total_size -= info.size;
+    }
 
 exit:
     if( stream != NULL )
