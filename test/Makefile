@@ -47,7 +47,9 @@
 # - host gcc compiler.
 ###############################################################################
 
-TOPDIR = $(shell pwd)
+CFLAGS="-I$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -I$(TOPDIR)/$(PSA_STORAGE_DIR)/configs -DMBEDTLS_CONFIG_FILE='<mbed_crypto_psa_storage_config.h>'"
+LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib
+LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib -lpsastorage"
 
 # MBED_CRYPTO_PATCHXxx are the symbols used to manage patching mbed-crypto
 # to leverage mbed-crypto tests for PSA storage testing.
@@ -63,9 +65,22 @@ MBED_CRYPTO_PATCH2 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_
 MBED_CRYPTO_PATCH3 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_CRYPTO_PATCH3_NAME)
 MBED_CRYPTO_PATCH4 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_CRYPTO_PATCH4_NAME)
 
-CFLAGS="-I$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -I$(TOPDIR)/$(PSA_STORAGE_DIR)/configs -DMBEDTLS_CONFIG_FILE='<mbed_crypto_psa_storage_config.h>'"
-LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib -lpsastorage"
-LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib
+# CFLAGS specified for building the PSA Storage library.
+# PSA_STORAGE_FILE_C_STORAGE_PREFIX defined to set
+# storage location for object files.
+PSA_CFLAGS="-DPSA_STORAGE_FILE_C_STORAGE_PREFIX='\"$(TEST_DIR)\"'"
+
+# PSA_ARCH_TESTS_CMAKE_VERBOSE sets the verbosity of output on the
+# psa-arch-tests make. Uncomment this symbol to get vebose output
+# PSA_ARCH_TESTS_CMAKE_VERBOSE=1
+
+PSA_ARCH_TESTS_DIR=psa-arch-tests
+PSA_ARCH_TESTS_MAIN_C_PATH=api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common
+PSA_CRYPTO_DIR=mbed-crypto
+PSA_STORAGE_DIR=psa_trusted_storage_linux
+PSA_STORAGE_MANIFEST_NAME=psa-storage-test-manifest.xml
+PSA_STORAGE_PINNED_MANIFEST_NAME=psa-storage-test-pinned-manifest.xml
+PSA_STORAGE_REPO_BRANCH=sdh_iotmbl_2532	# TODO: replace with master after merged
 
 # TEST_DIR is the location where PSA storage object files are created/removed
 # as part of testing. The path is specified as
@@ -74,17 +89,7 @@ LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/
 # library runs as part of an test binary, for example
 TEST_DIR="$(TOPDIR)/test/"
 
-# CFLAGS specified for building the PSA Storage library.
-# PSA_STORAGE_FILE_C_STORAGE_PREFIX defined to set
-# storage location for object files.
-PSA_CFLAGS="-DPSA_STORAGE_FILE_C_STORAGE_PREFIX='\"$(TEST_DIR)\"'"
-PSA_CRYPTO_DIR=mbed-crypto
-PSA_STORAGE_DIR=psa_trusted_storage_linux
-PSA_STORAGE_MANIFEST_NAME=psa-storage-test-manifest.xml
-PSA_STORAGE_PINNED_MANIFEST_NAME=psa-storage-test-pinned-manifest.xml
-PSA_STORAGE_REPO_BRANCH=sdh_iotmbl_2532	# TODO: replace with master after merged
-PSA_ARCH_TESTS_DIR=psa-arch-tests
-PSA_ARCH_TESTS_MAIN_C_PATH=api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common
+TOPDIR = $(shell pwd)
 
 ###############################################################################
 # Standard targets
@@ -223,7 +228,7 @@ ws-delete:
 # Target to build psa-arch-tests protected storage test binary
 .PHONY: psa-arch-tests-ps
 psa-arch-tests-ps: mbed-crypto psa-storage-install $(TOPDIR)/psa-arch-tests/api-tests/build-ps $(TOPDIR)/psa-arch-tests/api-tests/build-ps/CMakeFiles main.o
-	cd psa-arch-tests/api-tests/build-ps && cmake --build .
+	cd psa-arch-tests/api-tests/build-ps && cmake --build . -- VERBOSE=$(PSA_ARCH_TESTS_CMAKE_VERBOSE)
 	cd psa-arch-tests/api-tests/build-ps && gcc -o psa-arch-tests-ps $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o ./dev_apis/protected_storage/test_combine.a ./val/val_nspe.a ./platform/pal_nspe.a ./dev_apis/protected_storage/test_combine.a $(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib/libpsastorage.so
 
 # Target to create psa-arch-tests protected storage build directory
