@@ -14,6 +14,18 @@
 #define PSA_STORAGE_CONFIG_H
 
 /**
+ * \def PSA_STORAGE_USER_CONFIG_FILE
+ *
+ * Allow a user to override any of the default values defined in this file
+ * by provide a use config file with one or more symbol values.
+ * The current file (config.h) only defines a symbol value if a value has not
+ * been previously defined (i.e. a default is provided).
+ */
+#if defined(PSA_STORAGE_USER_CONFIG_FILE)
+#include PSA_STORAGE_USER_CONFIG_FILE
+#endif
+
+/**
  * \def PSA_STORAGE_FILE_C_STORAGE_PREFIX
  *
  * Define the path to the directory for Internal Trusted Storage
@@ -26,17 +38,5 @@
 #define PSA_STORAGE_FILE_C_STORAGE_PREFIX ""
 #endif
 
-
-/* \} name SECTION: mbed TLS modules */
-
-/* Target and application specific configurations
- *
- * Allow user to override any previous default.
- *
- */
-
-#if defined(PSA_STORAGE_USER_CONFIG_FILE)
-#include PSA_STORAGE_USER_CONFIG_FILE
-#endif
 
 #endif /* PSA_STORAGE_CONFIG_H */
