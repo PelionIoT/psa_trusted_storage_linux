@@ -28,7 +28,8 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
                          size_t data_length,
                          const void *p_data,
                          psa_storage_create_flags_t create_flags,
-                         psa_cs_api_t api );
+                         psa_cs_api_t api,
+                         void *ex_data );
 
 /**
  * Retrieve data associated with a provided UID.

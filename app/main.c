@@ -468,6 +468,7 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
 #define TEST_SUITE_ACTIVE
 
 #include "psa/protected_storage.h"
+#include "psa/psa_storage_test.h"
 
 /* Internal definitions of the implementation, copied for the sake of
  * some of the tests and of the cleanup code. */
@@ -1344,9 +1345,9 @@ const char* mbl_crypto_storage_test_suite_psa_ps_datax_str[] = {
     "Multiple files",
     "2:int:5:int:5",
     "Non-existent file",
-    NULL
+    "3:int:5:int:4",
+    NULL,
 };
-
 
 /**
  * \brief
@@ -1636,6 +1637,108 @@ int execute_tests( int argc , const char ** argv )
 int main( int argc, const char *argv[] )
 {
     int ret = -1;
+
+#ifdef PSA_STORAGE_TEST
+    int status1 = -1, status2 = -1, status51 = -1, status52 = -1, status53 = -1, status54 = -1, status55 = -1, status101 = -1, status102 = -1, status151 = -1, status152 = -1, status153 = -1, status154 = -1, status155 = -1;
+#endif
+
     ret = execute_tests( argc, argv );
+    if( ret < 0 )
+    {
+        ret = -1;
+        goto out0;
+    }
+
+#ifdef PSA_STORAGE_TEST
+    /* module testing */
+
+    status1 = psa_ps_test_tc1();
+    if( status1 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status2 = psa_ps_test_tc2();
+    if( status2 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status51 = psa_ps_test_tc51();
+    if( status51 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status52 = psa_ps_test_tc52();
+    if( status52 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status53 = psa_ps_test_tc53();
+    if( status53 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status54 = psa_ps_test_tc54();
+    if( status54 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status55 = psa_ps_test_tc55();
+    if( status55 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status101 = psa_ps_test_tc101();
+    if( status101 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status102 = psa_ps_test_tc102();
+    if( status102 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status151 = psa_ps_test_tc151();
+    if( status151 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status152 = psa_ps_test_tc152();
+    if( status152 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status153 = psa_ps_test_tc153();
+    if( status153 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status154 = psa_ps_test_tc154();
+    if( status154 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    status155 = psa_ps_test_tc155();
+    if( status155 != PSA_SUCCESS )
+    {
+        goto out0;
+    }
+    mbedtls_fprintf( stdout, "execute_tests                  %s\n", ret < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc1                %s\n", status1 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc2                %s\n", status2 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc51               %s\n", status51 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc52               %s\n", status52 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc53               %s\n", status53 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc54               %s\n", status54 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc55               %s\n", status55 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc101              %s\n", status101 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc102              %s\n", status102 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc151              %s\n", status151 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc152              %s\n", status152 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc153              %s\n", status153 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc154              %s\n", status154 < 0 ? "FAILED" : "PASSED");
+    mbedtls_fprintf( stdout, "psa_ps_test_tc155              %s\n", status155 < 0 ? "FAILED" : "PASSED");
+#endif /* PSA_STORAGE_TEST */
+
+out0:
     return( ret );
 }
