@@ -14,6 +14,18 @@
 #define PSA_STORAGE_CONFIG_H
 
 /**
+ * \def PSA_STORAGE_USER_CONFIG_FILE
+ *
+ * Allow a user to override any of the default values defined in this file
+ * by provide a use config file with one or more symbol values.
+ * The current file (config.h) only defines a symbol value if a value has not
+ * been previously defined (i.e. a default is provided).
+ */
+#if defined(PSA_STORAGE_USER_CONFIG_FILE)
+#include PSA_STORAGE_USER_CONFIG_FILE
+#endif
+
+/**
  * \def PSA_STORAGE_FILE_C_STORAGE_PREFIX
  *
  * Define the path to the directory for Internal Trusted Storage
@@ -26,17 +38,30 @@
 #define PSA_STORAGE_FILE_C_STORAGE_PREFIX ""
 #endif
 
-
-/* \} name SECTION: mbed TLS modules */
-
-/* Target and application specific configurations
+/**
+ * \def PSA_STORAGE_FILE_MAX
  *
- * Allow user to override any previous default.
- *
+ * Define the maximum number of file objects that can be created.
+ * This should be set to an appropriate value to support the application
+ * requirements whilst not exhausting available system storage resources.
+ * The total number of files is the sum of files allocated for both
+ * internal trusted storage and protected storage file objects.
  */
-
-#if defined(PSA_STORAGE_USER_CONFIG_FILE)
-#include PSA_STORAGE_USER_CONFIG_FILE
+#if ! defined ( PSA_STORAGE_FILE_MAX )
+#define PSA_STORAGE_FILE_MAX 1000
 #endif
+
+/**
+ * \def PSA_STORAGE_MAX_SIZE
+ *
+ * Define the maximum total number of bytes allocated to objects.
+ * This is the sum of all created object sizes (for both internal trusted
+ * storage and protected storage file objects), not total file space
+ * for store objects. The default value is 16MB.
+ */
+#if ! defined ( PSA_STORAGE_MAX_SIZE )
+#define PSA_STORAGE_MAX_SIZE 0x01000000
+#endif
+
 
 #endif /* PSA_STORAGE_CONFIG_H */
