@@ -80,7 +80,7 @@ PSA_CRYPTO_DIR=mbed-crypto
 PSA_STORAGE_DIR=psa_trusted_storage_linux
 PSA_STORAGE_MANIFEST_NAME=psa-storage-test-manifest.xml
 PSA_STORAGE_PINNED_MANIFEST_NAME=psa-storage-test-pinned-manifest.xml
-PSA_STORAGE_REPO_BRANCH=sdh_iotmbl_2532	# TODO: replace with master after merged
+PSA_STORAGE_REPO_BRANCH=master
 
 # TEST_DIR is the location where PSA storage object files are created/removed
 # as part of testing. The path is specified as
