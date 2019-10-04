@@ -4,9 +4,9 @@
   
   <default revision="master" sync-j="4"/>
   
-  <project name="armmbed/mbed-crypto" path="mbed-crypto" remote="github" revision="6b2a779323d77ceb3437e38766ad38841e4f9ca8" upstream="development"/>
-  <project name="armmbed/psa_trusted_storage_linux" path="psa_trusted_storage_linux" remote="github" revision="6614755a25241d6874ef6cab70f0999e9a8be3b2" upstream="sdh_iotmbl_2532">
+  <project name="armmbed/mbed-crypto" path="mbed-crypto" remote="github" revision="9ab7c07f1f370636fcaa8bc02e6f45035fab1596" upstream="development"/>
+  <project name="armmbed/psa_trusted_storage_linux" path="psa_trusted_storage_linux" remote="github" revision="1487144e33e2ee751d5d9526032a7acd2b031f1f" upstream="master">
     <linkfile dest="Makefile" src="test/Makefile"/>
   </project>
-  <project name="simonqhughes/psa-arch-tests" path="psa-arch-tests" remote="github" revision="a219c5b1c9c7083e01f6b52eeab3dc36a11b6d93" upstream="sdh_iotmbl_2532"/>
+  <project name="simonqhughes/psa-arch-tests" path="psa-arch-tests" remote="github" revision="a219c5b1c9c7083e01f6b52eeab3dc36a11b6d93" upstream="feature-psa-storage"/>
 </manifest>
