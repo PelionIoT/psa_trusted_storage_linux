@@ -94,7 +94,7 @@ static psa_status_t psa_its_fill_filename( psa_storage_uid_t uid, char *filename
     char *subprefix = PSA_CS_ITS_SUBPREFIX;
 
     /* check api parameter */
-    if ( api >= PSA_CS_API_MAX )
+    if( api >= PSA_CS_API_MAX )
         return( PSA_ERROR_GENERIC_ERROR );
 
     /* Break up the UID into two 32-bit pieces so as not to rely on
@@ -239,14 +239,14 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     int ret = 0;
 
     /* Check for resource/storage exhaustion */
-    if (  ! ( psa_cs_num_file_objects < PSA_STORAGE_FILE_MAX-1 )       ||
+    if(  ! ( psa_cs_num_file_objects < PSA_STORAGE_FILE_MAX-1 )       ||
             ( psa_cs_total_size + data_length > PSA_STORAGE_MAX_SIZE ) )
     {
         return ( PSA_ERROR_INSUFFICIENT_STORAGE );
     }
 
     /* Assert the function contract that uid != 0 */
-    if ( uid == PSA_STORATE_UID_INVALID_VALUE )
+    if( uid == PSA_STORATE_UID_INVALID_VALUE )
     {
         return( PSA_ERROR_INVALID_ARGUMENT );
     }
@@ -261,10 +261,10 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
      * create it. */
     subprefix = api == PSA_CS_API_PS ? PSA_CS_PS_SUBPREFIX : subprefix;
     snprintf( filename, PSA_CS_FILENAME_LENGTH, "%s%s", PSA_CS_PREFIX, subprefix );
-    if ( stat( filename, &st ) == -1 )
+    if( stat( filename, &st ) == -1 )
     {
         ret = mkdir( filename, 0700 );
-        if ( ret != 0 )
+        if( ret != 0 )
             return( PSA_ERROR_GENERIC_ERROR );
     }
 
@@ -334,7 +334,7 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     struct psa_storage_info_t info;
 
     /* Assert the function contract that uid != 0 */
-    if ( uid == PSA_STORATE_UID_INVALID_VALUE )
+    if( uid == PSA_STORATE_UID_INVALID_VALUE )
     {
         return ( PSA_ERROR_INVALID_ARGUMENT );
     }
