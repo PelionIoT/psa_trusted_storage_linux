@@ -5,7 +5,7 @@
 # In open-source project: https://github.com/ARMmbed/mbed-crypto
 #
 # Original file: Apache-2.0
-# Modifications: Copyright (c) 2019 Arm Limited and Contributors. All 
+# Modifications: Copyright (c) 2019 Arm Limited and Contributors. All
 # rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -44,4 +44,4 @@ clean:
 
 .PHONY: install
 install:
-	$(INSTALL) -D $(TARGET_APP) -t $(bindir) 
+	$(INSTALL) -D $(TARGET_APP) -t $(bindir)
