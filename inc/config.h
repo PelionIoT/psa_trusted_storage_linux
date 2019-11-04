@@ -73,7 +73,7 @@
 /**
  * \def PSA_STORAGE_TEST
  *
- * Define the this symbol to build a module test code into the library
+ * Define this symbol to build a module test code into the library
  * and test apps.
  */
 //#define PSA_STORAGE_TEST 1
