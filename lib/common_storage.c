@@ -10,9 +10,6 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * This file is a modified version of mbed-crypto/library/psa_its_file.c v1.1.0d0.
- *
- * See the PSA Trusted Storage Linux Low Level Design docmment in the docs subdirectory
- * for implementation details on the recovery processing, algorithm and test cases.
  */
 
 #include "config.h"
@@ -72,12 +69,13 @@
 #define PSA_TRUE 1
 #define PSA_FALSE 0
 #define PSA_UID_STRING_LENGTH 16
+#define PSA_SEQNUM_STRING_LENGTH 3
 
 #define PSA_CS_FILENAME_LENGTH                                                              \
     ( sizeof( PSA_CS_PREFIX ) - 1 +             /* prefix without terminating 0*/           \
       sizeof( PSA_CS_ITS_SUBPREFIX ) - 1 +      /* sub-prefix without terminating 0*/       \
       PSA_UID_STRING_LENGTH +                   /* UID (64-bit number in hex)*/             \
-      3 +                                       /* "_" and 8-bit sequence number */         \
+      PSA_SEQNUM_STRING_LENGTH +                /* "_" and 8-bit sequence number */         \
       sizeof( PSA_CS_DATA_FILE_SUFFIX ) - 1 +   /* suffix without terminating 0*/           \
       1                                         /* terminating null byte*/                  \
      )
@@ -1678,6 +1676,9 @@ exit:
 /* uid used internally in test routines */
 #define PSA_CS_TEST_UID_RESERVED 0xffffffff
 
+/** Macro to check the current number of file objects instantiated. */
+#define PSA_CS_CHECK_NUM_FILE_OBJECTS( __num )     psa_assert( psa_cs_num_file_objects == ( __num ) )
+
 /* UID data test vector used for creating both xxxx(seqnum).dat and xxxx_<seqnum>.bak files */
 const uint8_t psa_cs_testdata_vec1[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 const size_t psa_cs_testdata_vec1_len = sizeof( psa_cs_testdata_vec1 );
@@ -2036,7 +2037,8 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
     /* _init() should have recovered 1 file */
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
+
 
     /* now check have expected files i.e.
      * - <uid>.dat with seqnum = seqnum_new+1,
@@ -2230,7 +2232,7 @@ static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_f
     psa_cs_test_init( 0 );
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* now check have expected files i.e.
      * - <uid>.dat with seqnum = seqnum+1,
@@ -2413,13 +2415,13 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     ex_data.seqnum = (uint8_t) ( seqnum_new - 1 );
     status = psa_cs_set( uid, psa_cs_testdata_vec1_len, (void *) psa_cs_testdata_vec1, cflags, state.api, (void *) &ex_data );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Create <uid4>_<seqnum_old>.bak file (with different uid and data), and then rename to uid filename. */
     ex_data.seqnum = seqnum_old;
     status = psa_cs_test_create_bak_file( PSA_CS_TEST_UID4, cflags, &ex_data, psa_cs_testdata_vec2, psa_cs_testdata_vec2_len );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Rename <uid4>_<seqnum_old>.bak to <uid>_<seqnum_old>.bak */
     get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
@@ -2438,7 +2440,7 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     psa_assert( strlen( state.dirname ) > 0 );
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* now check have expected files i.e.
      * - <uid>.dat with seqnum = seqnum_new,
@@ -2628,7 +2630,7 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     ex_data.seqnum = (uint8_t) ( seqnum_old - 1 );
     status = psa_cs_set( uid, psa_cs_testdata_vec1_len, (void *) psa_cs_testdata_vec1, cflags, state.api, (void *) &ex_data );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Create <uid4>_<seqnum_new>.bak file (with different uid and data), and then rename to uid filename. */
     ex_data.seqnum = seqnum_new;
@@ -2652,7 +2654,7 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     psa_assert( strlen( state.dirname ) > 0 );
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum_new).dat exists */
     get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
@@ -2836,20 +2838,20 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
     ex_data.seqnum = seqnum_dat;
     status = psa_cs_test_create_dat_file( uid, cflags, &ex_data );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Create <uid>_<seqnum_bak>.bak file (with different uid and data), and then rename to uid filename. */
     ex_data.seqnum = seqnum_bak;
     status = psa_cs_test_create_bak_file( uid, cflags, &ex_data, psa_cs_testdata_vec1, psa_cs_testdata_vec1_len );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* perform recovery */
     psa_cs_test_init( 0 );
     psa_assert( strlen( state.dirname ) > 0 );
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum_bak).dat exists */
     get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
@@ -3142,14 +3144,14 @@ static psa_status_t psa_ps_test_tc55_seqnum( uint8_t seqnum, psa_storage_create_
     /* Create <uid1>_<seqnum1>.dat.*/
     status = psa_cs_test_create_dat_file( uid, cflags, &ex_data );
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* perform recovery */
     psa_cs_test_init( 0 );
     psa_assert( strlen( state.dirname ) > 0 );
     status = psa_cs_init();
     psa_assert( status == PSA_SUCCESS );
-    psa_assert( psa_cs_num_file_objects == 3 );
+    PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum).dat exists */
     get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
