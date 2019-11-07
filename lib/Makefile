@@ -21,11 +21,13 @@ RM = rm -f
 CFLAGS ?= -O2 -g
 LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
 LOCAL_LDFLAGS ?= -shared
+LOCAL_ARFLAGS ?= rcs
 TARGET_NAME = libpsastorage
 
 SOLINKERNAME = $(TARGET_NAME).so
 SONAME = $(TARGET_NAME).so.$(major)
 TARGET_LIB = $(SONAME).$(minor).$(rel)
+STATIC_LIB = $(TARGET_NAME).a
 
 SRCS = \
 	common_storage.c \
@@ -35,11 +37,14 @@ SRCS = \
 OBJS = $(SRCS:.c=.o)
 
 .PHONY: all
-all: ${TARGET_LIB}
+all: ${TARGET_LIB} $(STATIC_LIB)
 
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} $(LOCAL_LDFLAGS) -o $@ $^
 	ln -sf $(TARGET_LIB) $(SONAME)
+
+$(STATIC_LIB): $(OBJS)
+	$(AR) $(LOCAL_ARFLAGS) $@ $^
 
 $(SRCS:.c=.d):%.d:%.c
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -MM $< >$@
@@ -51,10 +56,11 @@ include $(SRCS:.c=.d)
 
 .PHONY: clean
 clean:
-	$(RM) $(TARGET_LIB) $(SONAME) $(SOLINKERNAME) $(OBJS) $(SRCS:.c=.d)
+	$(RM) $(TARGET_LIB) $(STATIC_LIB) $(SONAME) $(SOLINKERNAME) $(OBJS) $(SRCS:.c=.d)
 
 .PHONY: install
 install:
 	$(INSTALL) -D $(TARGET_LIB) -t $(libdir)
 	cd $(libdir) && ln -sf $(TARGET_LIB) $(SONAME)
 	cd $(libdir) && ln -sf $(SONAME) $(SOLINKERNAME)
+	$(INSTALL) -D $(STATIC_LIB) -t $(libdir)
