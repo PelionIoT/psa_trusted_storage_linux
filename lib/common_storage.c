@@ -117,7 +117,7 @@
 #endif
 
 /* assert() support */
-#ifdef PSA_STORAGE_DEBUG
+#ifdef PSA_STORAGE_TEST
 #include <assert.h>
 #define psa_assert( _predicate )                                               \
     do                                                                         \
@@ -295,6 +295,7 @@ static psa_status_t psa_cs_get_mktemp_filename( char *filename, uint32_t len )
     }
     dname = dirname( dup_fname );
     snprintf( filename, len, "%s/%" PRIu64 "%s", dname, psa_cs_temp_file_counter, PSA_CS_BAD_FILE_SUFFIX );
+    psa_cs_temp_file_counter++;
     free( dup_fname );
     status = PSA_SUCCESS;
 err0:
@@ -2151,13 +2152,24 @@ psa_status_t psa_ps_test_tc1_core( psa_storage_create_flags_t cflags )
 
 
 /* FUNCTION: psa_ps_test_tc1()
- *  Module test function for Recover Test Case 1, which is as follows:
- *   - F_WRITE_ONCE not set.
- *   - Missing xxxx.dat, 2 xxxx.bak files exists. Test code recovers xxxx.dat file
- *     with latest bak_seqnum.
- *      - tc1a) no xxxx.dat, xxxx_<seqnum=2>.bak, xxxx_<seqnum=3>.bak.
- *      - tc1b) no xxxx.dat, xxxx_<seqnum=254>.bak, xxxx_<seqnum=255>.bak.
- *      - tc1c) no xxxx.dat, xxxx_<seqnum=255>.bak, xxxx_<seqnum=0>.bak.
+ *  This test case can be summarised as follows:
+ *  - 0 .dat files exist, 2 .bak files exist, 0 .tmp files exist
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Recover .dat file with sequence number that matches accompanying .bak file.
+ *
+ *  The sub-cases are as follows:
+ *  1. Files <uid>_2.bak and <uid>_3.bak exist. Check that processing recovers <uid>.dat
+ *     with sequence number matching that of the recovered .bak file. Check that the
+ *     data in the .dat file matches the data in <uid>_3.bak. Check only 1 .bak file
+ *     exists.
+ *  2. Files <uid>_254.bak and <uid>_255.bak exist. Check that processing recovers
+ *     <uid>.dat with sequence number matching that of the recovered .bak file.
+ *     Check that the data in the .dat file matches the data in <uid>_255.bak.
+ *     Check only 1 .bak file exists.
+ *  3. Files <uid>_255.bak and <uid>_0.bak exist. Check that processing recovers
+ *     <uid>.dat with sequence number matching that of the recovered .bak file. Check
+ *     that the data in the .dat file matches the data in <uid>_0.bak. Check only 1
+ *     This test case can be summarised as follows:
  * ARGUMENTS: none
  * RETURN: PSA_SUCCESS
  */
@@ -2182,12 +2194,22 @@ psa_status_t psa_ps_test_tc101( void )
 
 
 /* FUNCTION: psa_ps_test_tc2_seqnum()
- *  Helper funtion for recovery test case 1 to do the following:
- *   - init some background uid files.
- *   - create 1 xxxx_<seqnum>.bak
- *   - run recovery
- *   - check correct xxxx.dat and xxxx.bak now exist
- *   - deinit some background uid files.
+ *  This test case can be summarised as follows:
+ *  - 0 .dat files exist, 1 .bak file exists, 0 .tmp files exist.
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Create some background uid files.
+ *  - Recover .dat file with sequence number that matches accompanying .bak file.
+ *  - Delete background uid files.
+ *
+ *  The sub-cases are as follows:
+ *  1. File <uid>_2.bak exists. Check that processing recovers <uid>.dat with
+ *     sequence number matching that of the recovered .bak file. Check that
+ *     the data in the .dat file matches the data in <uid>_2.bak. Check only
+ *     1 .bak file exists.
+ *  2. File <uid>_255.bak exists. Check that processing recovers <uid>.dat with
+ *     sequence number matching that of the recovered .bak file. Check that the
+ *     data in the .dat file matches the data in <uid>_255.bak. Check only 1 .bak
+ *     file exists.
  * ARGUMENTS:
  *   seqnum     first seqnum
  * RETURN: PSA_SUCCESS
@@ -2552,13 +2574,17 @@ psa_status_t psa_ps_test_tc51_core( psa_storage_create_flags_t cflags )
 
 
 /* FUNCTION: psa_ps_test_tc51()
- *  Module test function for Recover Test Case 51, which is as follows:
- *   - F_WRITE_ONCE not set.
- *   - 2 xxxx.bak files exists, check the old one is removed
- *     with earliest bak_seqnum, and check xxxx.dat remains the same.
- *      - tc51a) xxxx(seqnum=3).dat, xxxx_<seqnum=2>.bak, xxxx_<seqnum=3>.bak.
- *      - tc51b) xxxx(seqnum=255).dat, xxxx_<seqnum=254>.bak, xxxx_<seqnum=255>.bak.
- *      - tc51c) xxxx(seqnum=0).dat, xxxx_<seqnum=255>.bak, xxxx_<seqnum=0>.bak.
+ * This test case can be summarised as follows:
+ * - 1 .dat files exist with sequence number yyy,  2 .bak files exist (one with
+ *     sequence number yyy and one with yyy-1 i.e. an old file), 0 .tmp file exists.
+ * - The F_WRITE_ONCE is not set in the files.
+ * - Recover .dat file with sequence number that matches accompanying .bak file.
+ * - Check the old .bak file (yyy-1) is removed.
+ *
+ * The sub-cases are as follows:
+ * 1. Files <uid>_2.bak and <uid>_3.bak exist. File .dat exists with sequence number 3.
+ * 2. Files <uid>_254.bak and <uid>_255.bak exist. File .dat exists with sequence number 255.
+ * 3.    Files <uid>_255.bak and <uid>_0.bak exist. File .dat exists with sequence number 0.
  * ARGUMENTS: none
  * RETURN: PSA_SUCCESS
  */
@@ -2583,12 +2609,20 @@ psa_status_t psa_ps_test_tc151( void )
 
 
 /* FUNCTION: psa_ps_test_tc52_seqnum()
- *  Helper function for recovery test case 52 to do the following:
- *   - init some background uid files.
- *   - create xxxx(seqnum_old).dat and 1 xxxx_<seqnum_new>.bak
- *   - run recovery
- *   - check correct xxxx.dat and xxxx.bak now exist
- *   - deinit some background uid files.
+ *  This test case can be summarised as follows:
+ *  - 1 dat files exist with sequence number yyy-1, 2 .bak files exist (one
+ *      with sequence number yyy and one with yyy-1 i.e. an old file), 0 .tmp
+ *      file exists.
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Create some background uid files.
+ *  - Recover .dat file with sequence number that matches accompanying .bak file.
+ *  - Check only 1 .bak file exists.
+ *   - Delete background uid files.
+ *
+ *  The sub-cases are as follows:
+ *  1. Files <uid>_2.bak and <uid>_3.bak exist. File .dat exists with sequence number 2.
+ *  2. Files <uid>_254.bak and <uid>_255.bak exist. File .dat exists with sequence number 254.
+ *  3. Files <uid>_255.bak and <uid>_0.bak exist. File .dat exists with sequence number 255.
  * ARGUMENTS:
  *   seqnum_old     first seqnum
  *   seqnum_new     second seqnum
@@ -2981,14 +3015,16 @@ psa_status_t psa_ps_test_tc53_core( psa_storage_create_flags_t cflags )
 
 
 /* FUNCTION: psa_ps_test_tc53()
- *  Module test function for Recover Test Case 53, which is as follows:
- *   - F_WRITE_ONCE not set.
- *   - xxxx.dat file exists.
- *   - 1 bak present but files dont have matching sequence number and dat_seq > bak_seqnum. check new xxxx.bak is created
- *      - dat_seqnum=3, bk1_seqnum=2
- *      - dat_seqnum=255, bk1_seqnum=254
- *      - dat_seqnum=0, bk1_seqnum=255
- *      - dat_seqnum=1, bk1_seqnum=0
+ *  This test case can be summarised as follows:
+ *  - 1 .dat files exist with sequence number yyy,  1 .bak files exist with
+ *    sequence number xxx where yyy > xxx, 0 .tmp file exists.
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Recover .dat file with sequence number that matches accompanying .bak file.
+ *  The sub-cases are as follows:
+ *  1. Files <uid>_2.bak and <uid>_3.dat exist.
+ *  2. Files <uid>_254.bak and <uid>_255.dat exist.
+ *  3. Files <uid>_255.bak and <uid>_0.dat exist.
+ *  4. Files <uid>_0.bak and <uid>_1.dat exist.
  * ARGUMENTS: none
  * RETURN: PSA_SUCCESS
  */
@@ -3039,14 +3075,17 @@ psa_status_t psa_ps_test_tc54_core( psa_storage_create_flags_t cflags )
 
 
 /* FUNCTION: psa_ps_test_tc54()
- *  Module test function for Recover Test Case 54, which is as follows:
- *   - F_WRITE_ONCE not set.
- *   - xxxx.dat file exists.
- *   - 1 bak present but files dont have matching sequence number and dat_seq > bak_seqnum. check new xxxx.bak is created
- *      - dat_seqnum=3, bk1_seqnum=2
- *      - dat_seqnum=255, bk1_seqnum=254
- *      - dat_seqnum=0, bk1_seqnum=255
- *      - dat_seqnum=1, bk1_seqnum=0
+ *  This test case can be summarised as follows:
+ *  - 1 .dat files exist with sequence number yyy, 1 .bak files exist with
+ *    sequence number xxx where yyy < xxx, 0 .tmp file exists.
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Recover .dat file with sequence number that matches accompanying .bak file.
+ *
+ *  The sub-cases are as follows:
+ *  1. Files <uid>_4.bak and <uid>_3.dat exist.
+ *  2. Files <uid>_255.bak and <uid>_254.dat exist.
+ *  3. Files <uid>_0.bak and <uid>_255.dat exist.
+ *  4. Files <uid>_1.bak and <uid>_0.dat exist.
  * ARGUMENTS: none
  * RETURN: PSA_SUCCESS
  */
@@ -3100,12 +3139,19 @@ static int psa_cs_uid_bak_file_filter( const struct dirent *dir )
 
 
 /* FUNCTION: psa_ps_test_tc55_seqnum()
- *  Helper function for recovery test case 55 to do the following:
- *   - init some background uid files.
- *   - create xxxx.dat and remove its xxxx.bak
- *   - run recovery
- *   - check xxxx.dat and xxxx.bak now exist
- *   - deinit some background uid files.
+ *  This test case can be summarised as follows:
+ *  - 1 .dat files exist with sequence number yyy,  0 .bak files exist, 0 .tmp file exists.
+ *  - The F_WRITE_ONCE is not set in the files.
+ *  - Create some background uid files.
+ *  - Recover .bak file with sequence number that matches accompanying .dat file.
+ *  - Delete some background uid files.
+ *
+ * The sub-cases are as follows:
+ * 1. File <uid>_0.dat exist.
+ * 2. File <uid>_255.dat exist.
+ * 3. File <uid>_254.dat exist.
+ * 4. File <uid>_128.dat exist.
+ * 5. File <uid>_1.dat exist.
  * ARGUMENTS:
  * RETURN: PSA_SUCCESS
  */
