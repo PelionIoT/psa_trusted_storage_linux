@@ -109,7 +109,7 @@
     {                                                                          \
         if( PSA_STORAGE_DEBUG )                                                \
         {                                                                      \
-            fprintf( stderr, "%s: " _format, __FUNCTION__, __VA_ARGS__ );      \
+            fprintf( stdout, "%s: " _format, __FUNCTION__, __VA_ARGS__ );      \
         }                                                                      \
     } while ( 0 )
 #else
@@ -124,7 +124,7 @@
     {                                                                          \
         if( ! ( _predicate ) )                                                 \
         {                                                                      \
-            fprintf( stderr, "%s:%d\n", __FUNCTION__, __LINE__ );              \
+            fprintf( stdout, "%s:%d\n", __FUNCTION__, __LINE__ );              \
         }                                                                      \
         assert( ( _predicate ) );                                              \
     } while ( 0 )
@@ -2134,7 +2134,7 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc1_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc1_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc1a_seqnum_old = 2;
     const uint8_t tc1a_seqnum_new = 3;
@@ -2347,7 +2347,7 @@ static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_f
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc2_core ( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc2_core ( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc2a_seqnum_old = 2;
     const uint8_t tc2b_seqnum_old = 254;
@@ -2556,7 +2556,7 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc51_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc51_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc51a_seqnum_old = 2;
     const uint8_t tc51a_seqnum_new = 3;
@@ -2777,7 +2777,7 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc52_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc52_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc52a_seqnum_old = 2;
     const uint8_t tc52a_seqnum_new = 3;
@@ -2994,7 +2994,7 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc53_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc53_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc53a_seqnum_dat = 3;
     const uint8_t tc53a_seqnum_bak = 2;
@@ -3054,7 +3054,7 @@ psa_status_t psa_ps_test_tc153( void )
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc54_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc54_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc54a_seqnum_dat = 3;
     const uint8_t tc54a_seqnum_bak = 4;
@@ -3275,7 +3275,7 @@ static psa_status_t psa_ps_test_tc55_seqnum( uint8_t seqnum, psa_storage_create_
  *  cflags          _set() create_flags setting for setting/not setting F_WRITE_ONCE flag
  * RETURN: PSA_SUCCESS
  */
-psa_status_t psa_ps_test_tc55_core( psa_storage_create_flags_t cflags )
+static psa_status_t psa_ps_test_tc55_core( psa_storage_create_flags_t cflags )
 {
     const uint8_t tc55a_seqnum = 0;
     const uint8_t tc55b_seqnum = 254;

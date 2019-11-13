@@ -1625,6 +1625,22 @@ int execute_tests( int argc , const char ** argv )
 
 /* Main Test code */
 
+#ifdef PSA_STORAGE_TEST
+extern psa_status_t psa_ps_test_tc1( void );
+extern psa_status_t psa_ps_test_tc2( void );
+extern psa_status_t psa_ps_test_tc51( void );
+extern psa_status_t psa_ps_test_tc52( void );
+extern psa_status_t psa_ps_test_tc53( void );
+extern psa_status_t psa_ps_test_tc54( void );
+extern psa_status_t psa_ps_test_tc54( void );
+extern psa_status_t psa_ps_test_tc101( void );
+extern psa_status_t psa_ps_test_tc102( void );
+extern psa_status_t psa_ps_test_tc151( void );
+extern psa_status_t psa_ps_test_tc152( void );
+extern psa_status_t psa_ps_test_tc153( void );
+extern psa_status_t psa_ps_test_tc154( void );
+extern psa_status_t psa_ps_test_tc155( void );
+#endif /* PSA_STORAGE_TEST */
 
 /**
  * \brief       Program main. Invokes platform specific execute_tests().
@@ -1639,14 +1655,53 @@ int main( int argc, const char *argv[] )
     int ret = -1;
 
 #ifdef PSA_STORAGE_TEST
-    int status1 = -1, status2 = -1, status51 = -1, status52 = -1, status53 = -1, status54 = -1, status55 = -1, status101 = -1, status102 = -1, status151 = -1, status152 = -1, status153 = -1, status154 = -1, status155 = -1;
+    int i = 0;
+
+    psa_status_t (*test_cases[])(void) = {
+            psa_ps_test_tc1,
+            psa_ps_test_tc2,
+            psa_ps_test_tc51,
+            psa_ps_test_tc52,
+            psa_ps_test_tc53,
+            psa_ps_test_tc54,
+            psa_ps_test_tc55,
+            psa_ps_test_tc101,
+            psa_ps_test_tc102,
+            psa_ps_test_tc151,
+            psa_ps_test_tc152,
+            psa_ps_test_tc153,
+            psa_ps_test_tc154,
+            psa_ps_test_tc155,
+            NULL
+            };
+
+    const char* tc_description[] = {
+          /* 01234567890123456789012345678901234567890123456789012345678901234567890123456789  */
+            "TC001: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE unset)                  %s\n",
+            "TC002: Rcvr .dat from 0 dat, 1 .bak, F_WRITE_ONCE unset                %s\n",
+            "TC003: Report error for 0 .dat, 0 .bak, 1 .tmp, F_WRITE_ONCE unset)    %s\n",
+            "TC051: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE unset)            %s\n",
+            "TC052: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE unset)            %s\n",
+            "TC053: Rcvr .dat (1 .dat(new, mismatched), 1 .bak, F_WRITE_ONCE unset) %s\n",
+            "TC054: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE unset %s\n",
+            "TC055: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE unset)                  %s\n",
+            "TC101: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE set)                    %s\n",
+            "TC102: Rcvr .dat (0 dat, 1 .bak, F_WRITE_ONCE set)                     %s\n",
+            "TC151: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE set)              %s\n",
+            "TC152: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE set)              %s\n",
+            "TC153: Rcvr .dat (1 .dat (new, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n",
+            "TC154: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n",
+            "TC155: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE set)                    %s\n",
+            NULL,
+            };
+
 #endif
 
-    mbedtls_fprintf( stdout, "\n\n");
-    mbedtls_fprintf( stdout, "PSA Storage Tests Derived from mbed-crypto Tests\n");
-    mbedtls_fprintf( stdout, "================================================\n\n");
+    mbedtls_fprintf( stdout, "\n\n" );
+    mbedtls_fprintf( stdout, "PSA Storage Tests Derived from mbed-crypto Tests\n" );
+    mbedtls_fprintf( stdout, "================================================\n\n" );
     ret = execute_tests( argc, argv );
-    mbedtls_fprintf( stdout, "Execute_tests                  %s\n", ret < 0 ? "FAIL" : "PASS");
+    mbedtls_fprintf( stdout, "Execute_tests                  %s\n", ret < 0 ? "FAIL" : "PASS" );
     if( ret < 0 )
     {
         ret = -1;
@@ -1655,97 +1710,32 @@ int main( int argc, const char *argv[] )
 
 #ifdef PSA_STORAGE_TEST
     /* module testing */
-
-    status1 = psa_ps_test_tc1();
-    if( status1 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status2 = psa_ps_test_tc2();
-    if( status2 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status51 = psa_ps_test_tc51();
-    if( status51 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status52 = psa_ps_test_tc52();
-    if( status52 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status53 = psa_ps_test_tc53();
-    if( status53 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status54 = psa_ps_test_tc54();
-    if( status54 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status55 = psa_ps_test_tc55();
-    if( status55 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status101 = psa_ps_test_tc101();
-    if( status101 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status102 = psa_ps_test_tc102();
-    if( status102 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status151 = psa_ps_test_tc151();
-    if( status151 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status152 = psa_ps_test_tc152();
-    if( status152 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status153 = psa_ps_test_tc153();
-    if( status153 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status154 = psa_ps_test_tc154();
-    if( status154 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    status155 = psa_ps_test_tc155();
-    if( status155 != PSA_SUCCESS )
-    {
-        goto out0;
-    }
-    /*                        01234567890123456789012345678901234567890123456789012345678901234567890123456789    */
-    mbedtls_fprintf( stdout, "\n\n");
-    mbedtls_fprintf( stdout, "Robustness Against Power Failure Test Cases\n");
-    mbedtls_fprintf( stdout, "===========================================\n");
+    mbedtls_fprintf( stdout, "\n\n" );
+    mbedtls_fprintf( stdout, "Robustness Against Power Failure Test Cases\n" );
+    mbedtls_fprintf( stdout, "===========================================\n" );
     mbedtls_fprintf( stdout, "\n");
-    mbedtls_fprintf( stdout, "TC001: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE unset)                  %s\n", status1 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC002: Rcvr .dat from 0 dat, 1 .bak, F_WRITE_ONCE unset                %s\n", status2 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC003: Report error for 0 .dat, 0 .bak, 1 .tmp, F_WRITE_ONCE unset)    %s\n", status2 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC051: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE unset)            %s\n", status51 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC052: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE unset)            %s\n", status52 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC053: Rcvr .dat (1 .dat(new, mismatched), 1 .bak, F_WRITE_ONCE unset) %s\n", status53 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC054: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE unset %s\n", status54 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC055: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE unset)                  %s\n", status55 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC101: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE set)                    %s\n", status101 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC102: Rcvr .dat (0 dat, 1 .bak, F_WRITE_ONCE set)                     %s\n", status102 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC151: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE set)              %s\n", status151 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC152: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE set)              %s\n", status152 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC153: Rcvr .dat (1 .dat (new, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n", status153 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC154: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n", status154 < 0 ? "FAIL" : "PASS");
-    mbedtls_fprintf( stdout, "TC155: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE set)                    %s\n", status155 < 0 ? "FAIL" : "PASS");
+    while( test_cases[i] != NULL)
+    {
+#ifdef PSA_STORAGE_DEBUG
+        mbedtls_fprintf( stdout, "\n\n");
+        mbedtls_fprintf( stdout, tc_description[i], "Starting" );
+        mbedtls_fprintf( stdout, "===============================================================================\n");
+        mbedtls_fprintf( stdout, "\n");
+#endif /* PSA_STORAGE_DEBUG */
+        ret = test_cases[i]();
+#ifdef PSA_STORAGE_DEBUG
+        mbedtls_fprintf( stdout, "\n\n");
+        mbedtls_fprintf( stdout, tc_description[i], "Ended" );
+        mbedtls_fprintf( stdout, "============================================================================\n");
+        mbedtls_fprintf( stdout, "\n");
+#endif /* PSA_STORAGE_DEBUG */
+        if( ret != PSA_SUCCESS )
+        {
+            goto out0;
+        }
+        mbedtls_fprintf( stdout, tc_description[i], ret < 0 ? "FAIL" : "PASS");
+        i++;
+    }
 #endif /* PSA_STORAGE_TEST */
 
 out0:
