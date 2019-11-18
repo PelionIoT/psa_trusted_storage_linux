@@ -260,6 +260,37 @@ test-psa-arch-tests-its: $(TEST_DIR) psa-arch-tests-its
 	$(TOPDIR)/psa-arch-tests/api-tests/build-its/psa-arch-tests-its
 
 ###############################################################################
+# PSA Compliance psa-arch-tests-its protected storage test binary targets
+###############################################################################
+# Target to build psa-arch-tests protected storage test binary
+.PHONY: psa-arch-tests-its
+psa-arch-tests-its: mbed-crypto psa-storage-install $(TOPDIR)/psa-arch-tests/api-tests/build-its $(TOPDIR)/psa-arch-tests/api-tests/build-its/CMakeFiles
+	cd psa-arch-tests/api-tests/build-its && cmake --build . -- VERBOSE=$(PSA_ARCH_TESTS_CMAKE_VERBOSE)
+
+# Target to create psa-arch-tests protected storage build directory
+$(TOPDIR)/psa-arch-tests/api-tests/build-its:
+	mkdir $(TOPDIR)/psa-arch-tests/api-tests/build-its
+
+# Target to invoke psa-arch-tests protected storage cmake configuration.
+$(TOPDIR)/psa-arch-tests/api-tests/build-its/CMakeFiles:
+	cd psa-arch-tests/api-tests/build-its && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=INTERNAL_TRUSTED_STORAGE -DPSA_INCLUDE_PATHS=$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -DCPU_ARCH=armv7m -DPSA_STORAGE_LIB_FILENAME=$(PSA_STORAGE_LIB_FILENAME)
+
+# Target to psa-arch-tests protected storage test binary build
+.PHONY: psa-arch-tests-its-build
+psa-arch-tests-its-build:
+	cd $(TOPDIR)/psa-arch-tests/api-tests/build-its && cmake --build .
+
+# Target to delete the psa-arch-tests-its build directory and other artifacts
+.PHONY: psa-arch-tests-its-clean
+psa-arch-tests-its-clean:
+	rm -fR $(TOPDIR)/psa-arch-tests/api-tests/build-its
+
+# Target to run psa-arch-tests protected storage test binary.
+.PHONY: test-psa-arch-tests-its
+test-psa-arch-tests-its: $(TEST_DIR) psa-arch-tests-its
+	-$(TOPDIR)/psa-arch-tests/api-tests/build-its/psa-arch-tests-its
+
+###############################################################################
 # PSA Compliance psa-arch-tests-crypto crypto test binary targets
 # Note the binary has to be generated from a non-patched version of mbed-crypto
 ###############################################################################
