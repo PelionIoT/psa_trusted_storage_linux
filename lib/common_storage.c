@@ -125,8 +125,8 @@
         if( ! ( _predicate ) )                                                 \
         {                                                                      \
             fprintf( stdout, "%s:%d\n", __FUNCTION__, __LINE__ );              \
+            assert( 0 );                                                       \
         }                                                                      \
-        assert( ( _predicate ) );                                              \
     } while ( 0 )
 #else
     #define psa_assert( _predicate )
@@ -287,7 +287,7 @@ static psa_status_t psa_cs_get_mktemp_filename( char *filename, uint32_t len )
     char *dup_fname = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     dup_fname = strndup( filename, PSA_CS_FILENAME_LENGTH );
     if (dup_fname == NULL )
     {
@@ -327,7 +327,7 @@ static psa_status_t psa_cs_copy_file( const char *src_filename, const char *dst_
     FILE *p_src_stream = NULL;
     FILE *p_dst_stream = NULL;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     p_src_stream = fopen( src_filename, "rb" );
     if( p_src_stream == NULL )
     {
@@ -415,7 +415,7 @@ static psa_status_t psa_cs_get_filename( psa_storage_uid_t uid, char *filename, 
     char *subprefix = NULL;
     char *ext = PSA_CS_BAD_FILE_SUFFIX;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
 
     /* Break up the UID into two 32-bit pieces so as not to rely on
      * long long support in snprintf. */
@@ -468,7 +468,7 @@ static psa_status_t psa_cs_read_file_core( char *filename,
     size_t n;
     psa_status_t status;
 
-    psa_debug( " Entry: filename=%s\n", filename );
+    psa_debug( " Entry:%s: filename=%s\n", __FUNCTION__, filename );
     *p_stream = fopen( filename, "rb" );
     if( *p_stream == NULL )
     {
@@ -511,11 +511,11 @@ err:
 /* FUNCTION: psa_cs_read_file()
  *  Open the file and read the meta-data.
  * ARGUMENTS:
- *   uid         IN, unique file object ID.
- *   p_info      IN, pointer to information structure to take copy of in psa_storage_info_t stored in file.
- *   p_stream    IN, OUT, pointer pointer to opened stream.
- *   api         IN, whether this call in on the ITS or PS API.
- *   seqnum      OUT, sequence number read from the file and returned to caller
+ *   uid         IN: unique file object ID.
+ *   p_info      IN, OUT: pointer to information structure to receive psa_storage_info_t data read from file.
+ *   p_stream    IN, OUT: pointer to pointer to opened stream.
+ *   api         IN: whether this call in on the ITS or PS API.
+ *   seqnum      OUT: sequence number read from the file and returned to caller
  */
 static psa_status_t psa_cs_read_file( psa_storage_uid_t uid,
                                        struct psa_storage_info_t *p_info,
@@ -528,7 +528,7 @@ static psa_status_t psa_cs_read_file( psa_storage_uid_t uid,
     uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     uint8_t rf_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     *p_stream = NULL;
     if( seqnum )
     {
@@ -566,7 +566,7 @@ psa_status_t psa_cs_recover_file( psa_cs_recovery_state_t *state )
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct psa_storage_info_t info;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_debug( " state->rec_file_src_filename=%s,state->ex_data.seqnum=%d\n", state->rec_file_src_filename, state->ex_data.seqnum );
     memset( &info, 0, sizeof( info ) );
 
@@ -616,10 +616,8 @@ psa_status_t psa_cs_proc_scenario_1_1( psa_cs_recovery_state_t *state )
     uint8_t bkxp1_seqnum = 0;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    psa_debug( " %s\n", "Entry" );
-    /* find xxxx.bakx+1
-     * If only bka exists then state->bkb_seqnum = 0 and then this doesnt work for
-     * bka_seqnum > PSA_CS_FILE_HEADER_MAGIC_SEQNUM_MAX/2 */
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
+    /* Find <uid>_yyy+1.bak (the latest xxxx.bk file).*/
     if( (uint8_t) ( state->bka_seqnum - state->bkb_seqnum ) < PSA_CS_FILE_HEADER_MAGIC_SEQNUM_MAX/2 )
     {
         /* bka_seqnum > bkb_seqnum */
@@ -653,7 +651,7 @@ psa_status_t psa_cs_proc_scenario_1_1( psa_cs_recovery_state_t *state )
  */
 psa_status_t psa_cs_proc_scenario_1_2( psa_cs_recovery_state_t *state )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     state->rec_file_src_filename = state->bka_filename;
     state->ex_data.seqnum = state->bka_seqnum;
     return psa_cs_recover_file( state );
@@ -669,7 +667,7 @@ psa_status_t psa_cs_proc_scenario_1( psa_cs_recovery_state_t *state )
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     if( state->b_min_uid_bka_exists && state->b_min_uid_bkb_exists )
     {
         /* Scenario 1.1, No dat exists. bkx+1 MUST exist. */
@@ -705,7 +703,7 @@ psa_status_t psa_cs_proc_scenario_2_1( psa_cs_recovery_state_t *state )
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct psa_storage_info_t info;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     memset( &info, 0, sizeof( info ) );
     /* get dat_seqnum */
     snprintf( dat_fn, PSA_CS_FILENAME_LENGTH, "%s%s", state->dirname, state->dat_filename );
@@ -715,8 +713,7 @@ psa_status_t psa_cs_proc_scenario_2_1( psa_cs_recovery_state_t *state )
         goto err0;
     }
 
-    /* find xxxx.bakx+1 (the latest xxxx.bk file.
-     * If only bka exists then state->bkb_seqnum = 0 and then this doesnt work */
+    /* Find <uid>_yyy+1.bak (the latest xxxx.bk file).*/
     if( (uint8_t) ( state->bka_seqnum - state->bkb_seqnum ) < PSA_CS_FILE_HEADER_MAGIC_SEQNUM_MAX/2 )
     {
         /* bka_seqnum > bkb_seqnum */
@@ -797,7 +794,7 @@ psa_status_t psa_cs_proc_scenario_2_2( psa_cs_recovery_state_t *state )
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct psa_storage_info_t info;
 
-    psa_debug( "Entry: state->dat_filename=%s, state->bka_seqnum=%d\n", state->dat_filename, state->bka_seqnum );
+    psa_debug( "Entry:%s: state->dat_filename=%s, state->bka_seqnum=%d\n", __FUNCTION__, state->dat_filename, state->bka_seqnum );
     memset( &info, 0, sizeof( info ) );
     /* get dat_seqnum */
     snprintf( dat_fn, PSA_CS_FILENAME_LENGTH, "%s%s", state->dirname, state->dat_filename );
@@ -875,7 +872,7 @@ psa_status_t psa_cs_proc_scenario_2_3( psa_cs_recovery_state_t *state )
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     struct psa_storage_info_t info;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     memset( &info, 0, sizeof( info ) );
     /* get dat_seqnum so can regenerate bak filename */
     snprintf( dat_fn, PSA_CS_FILENAME_LENGTH, "%s%s", state->dirname, state->dat_filename );
@@ -918,7 +915,7 @@ psa_status_t psa_cs_proc_scenario_2( psa_cs_recovery_state_t *state )
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     if( state->b_min_uid_bka_exists && state->b_min_uid_bkb_exists )
     {
         /* Scenario 2.1, xxxx.dat exists. bkx+1 MUST exist. */
@@ -972,7 +969,7 @@ psa_status_t psa_cs_recover_uid( psa_cs_recovery_state_t *state )
 
     char min_uid_dat_filename[PSA_CS_FILENAME_LENGTH];
 
-    psa_debug( " Entry: min_uid=%" PRIu64 ", dirname=%s, num_bak_files=%d, num_tmp_files=%d, num_dat_files=%d\n", state->min_uid, state->dirname, state->num_bak_files, state->num_tmp_files, state->num_dat_files );
+    psa_debug( " Entry:%s: min_uid=%" PRIu64 ", dirname=%s, num_bak_files=%d, num_tmp_files=%d, num_dat_files=%d\n", __FUNCTION__, state->min_uid, state->dirname, state->num_bak_files, state->num_tmp_files, state->num_dat_files );
     psa_assert( strlen( state->dirname ) > 0 );
     psa_assert( state->num_bak_files > 0 || state->num_tmp_files > 0 || state->num_dat_files > 0 );
 
@@ -1111,7 +1108,7 @@ psa_status_t psa_cs_recover( psa_cs_recovery_state_t *state )
     int ret = 0;
     int num_files = 0;
 
-    psa_debug( "%s:dirname=%s\n", "Entry", state->dirname );
+    psa_debug( "Entry:%s:dirname=%s\n", __FUNCTION__, state->dirname );
     psa_assert( strlen( state->dirname ) > 0 );
 
     ret = scandir( state->dirname, &state->bad_list, psa_cs_bad_file_filter, versionsort );
@@ -1257,7 +1254,7 @@ psa_status_t psa_cs_get_info( psa_storage_uid_t uid,
     psa_status_t status;
     FILE *stream = NULL;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     if( psa_cs_num_file_objects == PSA_CS_NUM_FILE_OBJECTS_SENTINEL )
     {
         status = psa_cs_init();
@@ -1409,7 +1406,7 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
     uint8_t seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
 
-    psa_debug( "%s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     if( psa_cs_num_file_objects == PSA_CS_NUM_FILE_OBJECTS_SENTINEL )
     {
         status = psa_cs_init();
@@ -1432,7 +1429,7 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
         goto err0;
     }
 
-    /* As all files are stored on encrypted file system, a request for no confidentiality
+    /* As all files are stored on the encrypted file system, a request for no confidentiality
      * is upgraded to confidentiality. Hence if set the PSA_STORAGE_FLAG_NO_CONFIDENTIALITY
      * bit is cleared. */
     if( create_flags & PSA_STORAGE_FLAG_NO_CONFIDENTIALITY )
@@ -1446,7 +1443,7 @@ psa_status_t psa_cs_set( psa_storage_uid_t uid,
     status = psa_cs_read_file( uid, &info, &stream, api, &seqnum );
     if( status == PSA_SUCCESS )
     {
-        /* Step 1: Copy to pre-existing file to a tmp file.
+        /* Step 1: Copy pre-existing file to a tmp file.
          * - At present the processing is not required as only whole file
          *   objects are written. When set_extended() is implemented it
          *   will be required.
@@ -1606,7 +1603,7 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     struct psa_storage_info_t info;
     uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     if( psa_cs_num_file_objects == PSA_CS_NUM_FILE_OBJECTS_SENTINEL )
     {
         status = psa_cs_init();
@@ -1692,6 +1689,26 @@ const uint8_t psa_cs_testdata_vec3[] = {0x03, 0x03, 0x07, 0x0c, 0x12, 0x76, 0x28
 const size_t psa_cs_testdata_vec3_len = sizeof( psa_cs_testdata_vec3 );
 
 
+/* FUNCTION: psa_cs_test_case_get_filename()
+ *  Test case helper function to check that a object file does not exists.
+ * ARGUMENTS:
+ *   uid                    Unique identifier of the file object.
+ *   get_filename_flags     set to one of the following values:
+ *                          - PSA_CS_GET_FILENAME_F_DATA_FILE for <uid>.dat files
+ *                          - PSA_CS_GET_FILENAME_F_BAK_FILE for <uid>_yyy.bak files.
+ *   api                    PSA_CS_API_ITS for the ITS API or PSA_CS_API_PS for the PS API.
+ *   seqnum                 The sequence number is required when generating the <uid>_yyy.bak filename.
+ *   filename_buf           Buffer to receive the generated file name for the caller.
+ * RETURN: PSA_SUCCESS
+ */
+static psa_status_t psa_cs_test_case_get_filename( psa_storage_uid_t uid, uint32_t get_filename_flags, psa_cs_api_t api, uint8_t seqnum, char *filename_buf )
+{
+    get_filename_flags |= api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
+    psa_assert( psa_cs_get_filename( uid, filename_buf, get_filename_flags, seqnum ) == PSA_SUCCESS );
+    return PSA_SUCCESS;
+}
+
+
 /* FUNCTION: psa_cs_test_create_bak_file()
  *  Create 1 xxxx.bak files with specific sequence number but without xxxx.dat file.
  *  This is achieved as follows:
@@ -1703,11 +1720,11 @@ static psa_status_t psa_cs_test_create_bak_file( psa_storage_uid_t uid, psa_stor
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     char uid2_fn[PSA_CS_FILENAME_LENGTH];
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
+    //uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    /* NB: have to decrement sequence number supplied to _set() because creation of bak files will be
-     * with the seqnum+1. This seqnum is used for 1) the filename <uid>_<seqnum>.bak and 2) the seqnum
+    /* NB: Decrement the sequence number supplied to _set() because creation the bak files will be
+     * created with the sequence number + 1. This seqnum is used for 1) the filename <uid>_<seqnum>.bak and 2) the seqnum
      * stored inside <uid>_<seqnum>.bak.
      * Create <uid>_<seqnum1>.dat & <uid>_<seqnum1>.bak
      */
@@ -1718,33 +1735,15 @@ static psa_status_t psa_cs_test_create_bak_file( psa_storage_uid_t uid, psa_stor
         goto err;
     }
     /* Delete <uid>_<seqnum1>.dat */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= data->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( PSA_CS_TEST_UID_RESERVED, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( PSA_CS_TEST_UID_RESERVED, PSA_CS_GET_FILENAME_F_DATA_FILE, data->api, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT, uid_fn ) );
     remove( uid_fn );
     /* _set() will have increase file count. Decrement this count as the .dat file has been removed. */
     psa_cs_num_file_objects--;
 
     /* Rename <uid2>_<seqnum2>.bak to <uid>_<seqnum2>.bak */
     data->seqnum++;
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= data->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, data->seqnum );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= data->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( PSA_CS_TEST_UID_RESERVED, uid2_fn, get_filename_flags, data->seqnum );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, data->api, data->seqnum, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( PSA_CS_TEST_UID_RESERVED, PSA_CS_GET_FILENAME_F_BAK_FILE, data->api, data->seqnum, uid2_fn ) );
     ret = rename( uid2_fn, uid_fn );
     if( ret < 0 )
     {
@@ -1765,11 +1764,10 @@ static psa_status_t psa_cs_test_create_dat_file( psa_storage_uid_t uid, psa_stor
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
 
-    /* NB: have to decrement sequence number supplied to _set() because creation of bak files will be
-     * with the seqnum+1. This seqnum is used for 1) the filename <uid>_<seqnum>.bak and 2) the seqnum
+    /* NB: Decrement the sequence number supplied to _set() because creation the bak files will be
+     * created with the sequence number + 1. This seqnum is used for 1) the filename <uid>_<seqnum>.bak and 2) the seqnum
      * stored inside <uid>_<seqnum>.bak.
      * Create <uid>_<seqnum1>.dat & <uid>_<seqnum1>.bak
      */
@@ -1781,13 +1779,7 @@ static psa_status_t psa_cs_test_create_dat_file( psa_storage_uid_t uid, psa_stor
     }
     /* Delete <uid>_<seqnum>.bak */
     data->seqnum++;
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= data->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, data->seqnum );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, data->api, data->seqnum, uid_fn ) );
     ret = remove( uid_fn );
     if( ret < 0 )
     {
@@ -1807,7 +1799,6 @@ static psa_status_t psa_cs_test_create_bak_files( psa_storage_uid_t uid1, uint8_
 {
     char uid1_fn[PSA_CS_FILENAME_LENGTH];
     char uid2_fn[PSA_CS_FILENAME_LENGTH];
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_cs_api_t api = PSA_CS_API_PS;
     const psa_storage_uid_t uid2 = PSA_CS_TEST_UID_RESERVED;
@@ -1827,22 +1818,9 @@ static psa_status_t psa_cs_test_create_bak_files( psa_storage_uid_t uid1, uint8_
     {
         goto err;
     }
-
     /* Rename <uid2>_<seqnum2>.bak to <uid1>_<seqnum2>.bak */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid1, uid1_fn, get_filename_flags, seqnum2 );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid2, uid2_fn, get_filename_flags, seqnum2 );
-    if( status != PSA_SUCCESS )
-    {
-        goto err;
-    }
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid1, PSA_CS_GET_FILENAME_F_BAK_FILE, api, seqnum2, uid1_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid2, PSA_CS_GET_FILENAME_F_BAK_FILE, api, seqnum2, uid2_fn ) );
     rename( uid2_fn, uid1_fn );
 err:
     return status;
@@ -1895,7 +1873,9 @@ static psa_status_t psa_cs_test_init( uint32_t delete_files )
 
 
 /* FUNCTION: psa_cs_test_case_init()
- *  Create a other uid files so there are present during recovery processing
+ *  Create additional uid files in addition to the file objects needed for a test case.
+ *  The additional files ensure recovery processing code functions correctly when
+ *  multiple files are present.
  * ARGUMENTS: none
  * RETURN: PSA_SUCCESS
  */
@@ -1923,62 +1903,32 @@ static psa_status_t psa_cs_test_case_deinit( psa_cs_recovery_state_t *state, psa
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
+    int i = 0;
+
+    psa_storage_uid_t uids[] = { PSA_CS_TEST_UID1, PSA_CS_TEST_UID3, 0 };
 
     /* remove uid file objects for uid1 and uid3.*/
-    status = psa_cs_remove( PSA_CS_TEST_UID1, state->api );
-    if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
+    for( i = 0; uids[i] != 0; i++)
     {
-        psa_assert( status == PSA_SUCCESS );
-    }
-    else
-    {
-        psa_assert( status == PSA_ERROR_NOT_PERMITTED );
-        /* force removal */
-        get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-        get_filename_flags |= state->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( PSA_CS_TEST_UID1, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-        psa_assert( status == PSA_SUCCESS );
-        ret = remove( uid_fn );
-        psa_assert( ret == 0 );
-        /* Have forced removed the WRITE_ONCE file so have to manually decrement the uid count. */
-        psa_cs_num_file_objects--;
-
-        get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-        get_filename_flags |= state->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( PSA_CS_TEST_UID1, uid_fn, get_filename_flags, seqnum );
-        psa_assert( status == PSA_SUCCESS );
-        ret = remove( uid_fn );
-
-        psa_assert( ret == 0 );
-    }
-    psa_assert( psa_cs_num_file_objects == 1 );
-
-    status = psa_cs_remove( PSA_CS_TEST_UID3, state->api );
-    if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
-    {
-        psa_assert( status == PSA_SUCCESS );
-    }
-    else
-    {
-        psa_assert( status == PSA_ERROR_NOT_PERMITTED );
-        /* force removal */
-        get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-        get_filename_flags |= state->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( PSA_CS_TEST_UID3, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-        psa_assert( status == PSA_SUCCESS );
-        ret = remove( uid_fn );
-        psa_assert( ret == 0 );
-        /* Have forced removed the WRITE_ONCE file so have to manually decrement the uid count. */
-        psa_cs_num_file_objects--;
-
-        get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-        get_filename_flags |= state->api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( PSA_CS_TEST_UID3, uid_fn, get_filename_flags, seqnum );
-        psa_assert( status == PSA_SUCCESS );
-        ret = remove( uid_fn );
-        psa_assert( ret == 0 );
+        status = psa_cs_remove( uids[i], state->api );
+        if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
+        {
+            psa_assert( status == PSA_SUCCESS );
+        }
+        else
+        {
+            psa_assert( status == PSA_ERROR_NOT_PERMITTED );
+            /* force removal */
+            psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uids[i], PSA_CS_GET_FILENAME_F_DATA_FILE, state->api, seqnum, uid_fn ) );
+            ret = remove( uid_fn );
+            psa_assert( ret == 0 );
+            /* Have forced removed the WRITE_ONCE file so have to manually decrement the uid count. */
+            psa_cs_num_file_objects--;
+            psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uids[i], PSA_CS_GET_FILENAME_F_BAK_FILE, state->api, seqnum, uid_fn ) );
+            ret = remove( uid_fn );
+            psa_assert( ret == 0 );
+        }
     }
     /* Check the number of file objects is the same as at the start of testing */
     psa_assert( psa_cs_num_file_objects == 0 );
@@ -1986,8 +1936,96 @@ static psa_status_t psa_cs_test_case_deinit( psa_cs_recovery_state_t *state, psa
 }
 
 
+/* FUNCTION: psa_cs_check_file_seqnum()
+ *  Test case helper function to check that a object file exists with the
+ *  expected sequence number. The file object sequence number is read from
+ *  the file metadata and compared with the supplied expected sequence number
+ * ARGUMENTS:
+ *   uid                    Unique identifier of the file object.
+ *   get_filename_flags     set to one of the following values:
+ *                          - PSA_CS_GET_FILENAME_F_DATA_FILE for <uid>.dat files
+ *                          - PSA_CS_GET_FILENAME_F_BAK_FILE for <uid>_yyy.bak files.
+ *   api                    PSA_CS_API_ITS for the ITS API or PSA_CS_API_PS for the PS API.
+ *   expected_seqnum        The sequence number expected in the file metadata. For
+ *                          <uid>_yyy.bak files the value is also used to generate the file object
+ *                          filename.
+ *   filename_buf           Buffer to receive the generated file name for the caller.
+ * RETURN: PSA_SUCCESS
+ */
+static psa_status_t psa_cs_check_file_seqnum( psa_storage_uid_t uid, uint32_t get_filename_flags, psa_cs_api_t api, uint8_t expected_seqnum, char *filename_buf )
+{
+    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
+    FILE *p_stream = NULL;
+    struct psa_storage_info_t info;
+
+    memset( &info, 0, sizeof( info ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, get_filename_flags, api, expected_seqnum, filename_buf ) );
+    psa_assert( PSA_SUCCESS == psa_cs_read_file_core( filename_buf, &info, &p_stream, api, &r_seqnum ));
+    psa_assert( r_seqnum == expected_seqnum );
+    psa_assert( p_stream != NULL );
+    fclose( p_stream );
+    return PSA_SUCCESS;
+}
+
+
+/* FUNCTION: psa_cs_check_no_file()
+ *  Test case helper function to check that a object file does not exists.
+ * ARGUMENTS:
+ *   uid                    Unique identifier of the file object.
+ *   get_filename_flags     set to one of the following values:
+ *                          - PSA_CS_GET_FILENAME_F_DATA_FILE for <uid>.dat files
+ *                          - PSA_CS_GET_FILENAME_F_BAK_FILE for <uid>_yyy.bak files.
+ *   api                    PSA_CS_API_ITS for the ITS API or PSA_CS_API_PS for the PS API.
+ *   seqnum                 The sequence number is required when generating the <uid>_yyy.bak filename.
+ *   filename_buf           Buffer to receive the generated file name for the caller.
+ * RETURN: PSA_SUCCESS
+ */
+static psa_status_t psa_cs_check_no_file( psa_storage_uid_t uid, uint32_t get_filename_flags, psa_cs_api_t api, uint8_t seqnum, char *filename_buf )
+{
+    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
+    FILE *p_stream = NULL;
+    struct psa_storage_info_t info;
+
+    memset( &info, 0, sizeof( info ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, get_filename_flags, api, seqnum, filename_buf ) );
+    psa_assert( PSA_ERROR_DOES_NOT_EXIST == psa_cs_read_file_core( filename_buf, &info, &p_stream, api, &r_seqnum ));
+    psa_assert( p_stream == NULL );
+    return PSA_SUCCESS;
+}
+
+
+/* FUNCTION: psa_cs_check_file_data()
+ *  Test case helper function to check object file data matches test vector.
+ * ARGUMENTS:
+ *   uid                    Unique identifier of the file object.
+ *   expected_data          Data test vector expected in uid file object.
+ *   expected_data_len      Expected data test vector buffer length.
+ *   api                    PSA_CS_API_ITS for the ITS API or PSA_CS_API_PS for the PS API.
+ * RETURN: PSA_SUCCESS
+ */
+static psa_status_t psa_cs_check_file_data( psa_storage_uid_t uid, void *expected_data, size_t expected_data_length, psa_cs_api_t api )
+{
+    void *uid_data = NULL;
+    const size_t uid_data_offset = 0;
+    size_t uid_data_length = psa_cs_testdata_vec3_len;
+    struct psa_storage_info_t info;
+
+    memset( &info, 0, sizeof( info ) );
+    psa_assert( PSA_SUCCESS == psa_cs_get_info( uid, &info, api ) );
+    uid_data = malloc( info.size );
+    if( uid_data == NULL )
+    {
+        return PSA_ERROR_GENERIC_ERROR;
+    }
+    psa_assert( PSA_SUCCESS == psa_cs_get( uid, uid_data_offset, info.size, uid_data, &uid_data_length, api ));
+    psa_assert( memcmp( expected_data, uid_data, info.size ) == 0 );
+    psa_assert( uid_data_length == expected_data_length );
+    return PSA_SUCCESS;
+}
+
+
 /* FUNCTION: psa_ps_test_tc1_seqnum()
- *  Helper funtion for recovery test case 1 to do the following:
+ *  Helper function for recovery test case 1 to do the following:
  *   - init some background uid files.
  *   - create xxxx(seqnum_old).bak and xxxx_<seqnum_new>.bak
  *   - run recovery
@@ -2002,11 +2040,8 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     char uid_bak_fn[PSA_CS_FILENAME_LENGTH];
-    uint8_t uid_data[psa_cs_testdata_vec2_len];
-    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
+    //uint8_t uid_data[psa_cs_testdata_vec2_len];
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
-    FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
     struct psa_storage_info_t info;
@@ -2014,11 +2049,8 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
     psa_cs_recovery_state_t state;
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
     psa_cs_extended_data_t ex_data = { PSA_CS_API_PS, seqnum_new };
-    const size_t uid_data_offset = 0;
-    const size_t uid_data_size = psa_cs_testdata_vec3_len;
-    size_t uid_data_length = psa_cs_testdata_vec3_len;
 
-    psa_debug( " Entry: seqnum_old=%d, seqnum_new=%d, cflags=%d \n", seqnum_old, seqnum_new, cflags );
+    psa_debug( " Entry:%s: seqnum_old=%d, seqnum_new=%d, cflags=%d \n", __FUNCTION__, seqnum_old, seqnum_new, cflags );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
     psa_cs_test_init( 1 );
@@ -2049,32 +2081,11 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
      * - no other .bak files
      * - no tmp files.
      * - no bad files. */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == (uint8_t) ( seqnum_new + 1 ) );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, seqnum_new + 1, uid_fn ) );
 
     /* Check xxxx.dat data is as expected i.e. its the same as that used to create xxxx.bak file. */
-    status = psa_cs_get( uid, uid_data_offset, uid_data_size, uid_data, &uid_data_length, state.api );
-    psa_assert( status == PSA_SUCCESS );
-    ret = memcmp( psa_cs_testdata_vec3, uid_data, psa_cs_testdata_vec3_len );
-    psa_assert( ret == 0 );
-    psa_assert( uid_data_length == psa_cs_testdata_vec3_len );
-
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_bak_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == (uint8_t) ( seqnum_new + 1 ) );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_data( uid, (void*) psa_cs_testdata_vec3, psa_cs_testdata_vec3_len, state.api ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new + 1, uid_bak_fn ) );
 
     status = psa_cs_remove( uid, state.api );
     if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
@@ -2093,29 +2104,12 @@ static psa_status_t psa_ps_test_tc1_seqnum( uint8_t seqnum_old, uint8_t seqnum_n
         psa_assert( ret == 0 );
     }
     psa_assert( psa_cs_num_file_objects == 2 );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_old, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_fn ) );
 
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_old );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
-
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_new );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
-
-    ret = scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort ) == 0 );
     free( dirent_list );
-
-    ret = scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
     /* remove uid file objects for uid1 and uid3.*/
@@ -2143,7 +2137,7 @@ static psa_status_t psa_ps_test_tc1_core( psa_storage_create_flags_t cflags )
     const uint8_t tc1c_seqnum_old = 255;
     const uint8_t tc1c_seqnum_new = 0;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc1_seqnum( tc1a_seqnum_old, tc1a_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc1_seqnum( tc1b_seqnum_old, tc1b_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc1_seqnum( tc1c_seqnum_old, tc1c_seqnum_new, cflags ) == 0 );
@@ -2175,7 +2169,7 @@ static psa_status_t psa_ps_test_tc1_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc1( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc1_core( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -2188,7 +2182,7 @@ psa_status_t psa_ps_test_tc1( void )
  */
 psa_status_t psa_ps_test_tc101( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc1_core( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -2217,11 +2211,7 @@ psa_status_t psa_ps_test_tc101( void )
 static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_flags_t cflags )
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
-    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
-    uint8_t uid_data[psa_cs_testdata_vec2_len];
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
-    FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
     struct psa_storage_info_t info;
@@ -2229,11 +2219,8 @@ static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_f
     psa_cs_recovery_state_t state;
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
     psa_cs_extended_data_t ex_data = { PSA_CS_API_PS, seqnum };
-    const size_t uid_data_offset = 0;
-    const size_t uid_data_size = psa_cs_testdata_vec2_len;
-    size_t uid_data_length = psa_cs_testdata_vec2_len;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
 
@@ -2263,30 +2250,11 @@ static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_f
      * - no other .bak files
      * - no tmp files.
      * - no bad files. */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == (uint8_t) ( seqnum + 1 ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, seqnum + 1, uid_fn ) );
 
     /* Check xxxx.dat data is as expected i.e. its the same as that used to create xxxx.bak file. */
-    status = psa_cs_get( uid, uid_data_offset, uid_data_size, uid_data, &uid_data_length, state.api );
-    psa_assert( status == PSA_SUCCESS );
-    ret = memcmp( psa_cs_testdata_vec2, uid_data, psa_cs_testdata_vec2_len );
-    psa_assert( ret == 0 );
-    psa_assert( uid_data_length == psa_cs_testdata_vec2_len );
-
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == (uint8_t) ( seqnum + 1 ) );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_data( uid, (void*) psa_cs_testdata_vec2, psa_cs_testdata_vec2_len, state.api ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum + 1, uid_fn ) );
 
     /* Cleanup uid.dat and uid_<seqnum>.bak */
     status = psa_cs_remove( uid, state.api );
@@ -2298,48 +2266,32 @@ static psa_status_t psa_ps_test_tc2_seqnum( uint8_t seqnum, psa_storage_create_f
     {
         psa_assert( status == PSA_ERROR_NOT_PERMITTED );
         /* force removal */
-        get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-        get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-        psa_assert( status == PSA_SUCCESS );
+        psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT, uid_fn ) );
         ret = remove( uid_fn );
         psa_assert( ret == 0 );
         /* Have forced removed the WRITE_ONCE file so have to manually decrement the uid count. */
         psa_cs_num_file_objects--;
 
-        get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-        get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-        status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum + 1 );
-        psa_assert( status == PSA_SUCCESS );
+        psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum + 1, uid_fn ) );
         ret = remove( uid_fn );
         psa_assert( ret == 0 );
     }
     psa_assert( psa_cs_num_file_objects == 2 );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum + 1, uid_fn ) );
 
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( r_seqnum == (uint8_t) ( seqnum + 1 ) );
-    psa_assert( p_stream == NULL );
-
-    ret = scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
-    ret = scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
     /* remove uid file objects for uid1 and uid3.*/
-    status = psa_cs_test_case_deinit( &state, cflags, seqnum + 1 );
-    psa_assert( status == PSA_SUCCESS );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_deinit( &state, cflags, seqnum + 1 ));
 
     psa_assert( psa_cs_num_file_objects == 0 );
     return PSA_SUCCESS;
 }
+
 
 /* FUNCTION: psa_ps_test_tc2_core()
  *  Module test core function for Recover Test Case 2.
@@ -2353,7 +2305,7 @@ static psa_status_t psa_ps_test_tc2_core ( psa_storage_create_flags_t cflags )
     const uint8_t tc2b_seqnum_old = 254;
     const uint8_t tc2c_seqnum_old = 255;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc2_seqnum( tc2a_seqnum_old, cflags ) == 0 );
     psa_assert( psa_ps_test_tc2_seqnum( tc2b_seqnum_old, cflags ) == 0 );
     psa_assert( psa_ps_test_tc2_seqnum( tc2c_seqnum_old, cflags ) == 0 );
@@ -2372,7 +2324,7 @@ static psa_status_t psa_ps_test_tc2_core ( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc2( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc2_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -2384,7 +2336,7 @@ psa_status_t psa_ps_test_tc2( void )
  */
 psa_status_t psa_ps_test_tc102( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc2_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -2405,11 +2357,7 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     char uid_bak_fn[PSA_CS_FILENAME_LENGTH];
-    uint8_t uid_data[psa_cs_testdata_vec1_len];
-    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
-    FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
     struct psa_storage_info_t info;
@@ -2417,11 +2365,8 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     psa_cs_recovery_state_t state;
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
     psa_cs_extended_data_t ex_data = { PSA_CS_API_PS, seqnum_new };
-    const size_t uid_data_offset = 0;
-    const size_t uid_data_size = psa_cs_testdata_vec1_len;
-    size_t uid_data_length = psa_cs_testdata_vec1_len;
 
-    psa_debug( " Entry: seqnum_old=%d, seqnum_new=%d, cflags=%d\n", seqnum_old, seqnum_new, cflags );
+    psa_debug( " Entry:%s: seqnum_old=%d, seqnum_new=%d, cflags=%d\n", __FUNCTION__, seqnum_old, seqnum_new, cflags );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
 
@@ -2446,14 +2391,8 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Rename <uid4>_<seqnum_old>.bak to <uid>_<seqnum_old>.bak */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( PSA_CS_TEST_UID4, uid_fn, get_filename_flags, seqnum_old );
-    psa_assert( status == PSA_SUCCESS );
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, seqnum_old );
-    psa_assert( status == PSA_SUCCESS );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( PSA_CS_TEST_UID4, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_old, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_old, uid_bak_fn ) );
     ret = rename( uid_fn, uid_bak_fn );
     psa_assert( ret == 0 );
 
@@ -2471,32 +2410,11 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
      * - no other .bak files
      * - no tmp files.
      * - no bad files. */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum_new );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, seqnum_new, uid_fn ) );
 
     /* Check xxxx.dat data is as expected i.e. it hasn't changed from that used to create it. */
-    status = psa_cs_get( uid, uid_data_offset, uid_data_size, uid_data, &uid_data_length, state.api );
-    psa_assert( status == PSA_SUCCESS );
-    ret = memcmp( psa_cs_testdata_vec1, uid_data, psa_cs_testdata_vec1_len );
-    psa_assert( ret == 0 );
-    psa_assert( uid_data_length == psa_cs_testdata_vec1_len );
-
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_bak_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum_new );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_data( uid, (void*) psa_cs_testdata_vec1, psa_cs_testdata_vec1_len, state.api ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_bak_fn ) );
 
     status = psa_cs_remove( uid, state.api );
     if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
@@ -2516,29 +2434,13 @@ static psa_status_t psa_ps_test_tc51_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     }
     psa_assert( psa_cs_num_file_objects == 2 );
 
-    /* Check xxxx_<seqnum_old>.bak is not present */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_old );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_old, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_fn ) );
 
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_new );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
-
-    ret = scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
-    ret = scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
     /* remove uid file objects for uid1 and uid3.*/
@@ -2565,7 +2467,7 @@ static psa_status_t psa_ps_test_tc51_core( psa_storage_create_flags_t cflags )
     const uint8_t tc51c_seqnum_old = 255;
     const uint8_t tc51c_seqnum_new = 0;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc51_seqnum( tc51a_seqnum_old, tc51a_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc51_seqnum( tc51b_seqnum_old, tc51b_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc51_seqnum( tc51c_seqnum_old, tc51c_seqnum_new, cflags ) == 0 );
@@ -2590,7 +2492,7 @@ static psa_status_t psa_ps_test_tc51_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc51( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc51_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -2603,7 +2505,7 @@ psa_status_t psa_ps_test_tc51( void )
  */
 psa_status_t psa_ps_test_tc151( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc51_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -2632,11 +2534,7 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     char uid_bak_fn[PSA_CS_FILENAME_LENGTH];
-    uint8_t uid_data[psa_cs_testdata_vec1_len];
-    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
-    FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
     struct psa_storage_info_t info;
@@ -2644,11 +2542,8 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     psa_cs_recovery_state_t state;
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
     psa_cs_extended_data_t ex_data = { PSA_CS_API_PS, seqnum_new };
-    const size_t uid_data_offset = 0;
-    const size_t uid_data_size = psa_cs_testdata_vec2_len;
-    size_t uid_data_length = psa_cs_testdata_vec2_len;
 
-    psa_debug( " Entry: seqnum_old=%d, seqnum_new=%d, cflags=%d\n", seqnum_old, seqnum_new, cflags );
+    psa_debug( " Entry:%s: seqnum_old=%d, seqnum_new=%d, cflags=%d\n", __FUNCTION__, seqnum_old, seqnum_new, cflags );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
 
@@ -2672,14 +2567,8 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     psa_assert( status == PSA_SUCCESS );
 
     /* Rename <uid4>_<seqnum_new>.bak to <uid>_<seqnum_new>.bak */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( PSA_CS_TEST_UID4, uid_fn, get_filename_flags, seqnum_new );
-    psa_assert( status == PSA_SUCCESS );
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, seqnum_new );
-    psa_assert( status == PSA_SUCCESS );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( PSA_CS_TEST_UID4, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_bak_fn ) );
     ret = rename( uid_fn, uid_bak_fn );
     psa_assert( ret == 0 );
 
@@ -2691,32 +2580,11 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum_new).dat exists */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum_new );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, seqnum_new, uid_fn ) );
 
     /* Check xxxx.dat data is as expected i.e. it's the same as uid_<seqnum_new>.bak data. */
-    status = psa_cs_get( uid, uid_data_offset, uid_data_size, uid_data, &uid_data_length, state.api );
-    psa_assert( status == PSA_SUCCESS );
-    ret = memcmp( psa_cs_testdata_vec2, uid_data, psa_cs_testdata_vec2_len );
-    psa_assert( ret == 0 );
-    psa_assert( uid_data_length == psa_cs_testdata_vec2_len );
-
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_bak_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum_new );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_data( uid, (void*) psa_cs_testdata_vec2, psa_cs_testdata_vec2_len, state.api ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_bak_fn ) );
 
     status = psa_cs_remove( uid, state.api );
     if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
@@ -2736,30 +2604,14 @@ static psa_status_t psa_ps_test_tc52_seqnum( uint8_t seqnum_old, uint8_t seqnum_
     }
     psa_assert( psa_cs_num_file_objects == 2 );
 
-    /* Check xxxx_<seqnum_old>.bak is not present */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_old );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
+    /* Check xxxx_<seqnum_old>.bak and xxxx_<seqnum_new>.bak are not present */
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_old, uid_fn ) );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_new, uid_fn ) );
 
-    /* Check xxxx_<seqnum_new>.bak is not present */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_new );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
-
-    ret = scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
-    ret = scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
     /* remove uid file objects for uid1 and uid3.*/
@@ -2786,7 +2638,7 @@ static psa_status_t psa_ps_test_tc52_core( psa_storage_create_flags_t cflags )
     const uint8_t tc52c_seqnum_old = 255;
     const uint8_t tc52c_seqnum_new = 0;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc52_seqnum( tc52a_seqnum_old, tc52a_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc52_seqnum( tc52b_seqnum_old, tc52b_seqnum_new, cflags ) == 0 );
     psa_assert( psa_ps_test_tc52_seqnum( tc52c_seqnum_old, tc52c_seqnum_new, cflags ) == 0 );
@@ -2808,7 +2660,7 @@ static psa_status_t psa_ps_test_tc52_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc52( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc52_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -2821,7 +2673,7 @@ psa_status_t psa_ps_test_tc52( void )
  */
 psa_status_t psa_ps_test_tc152( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc52_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -2843,7 +2695,6 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
     uint8_t uid_data[psa_cs_testdata_vec1_len];
     uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
     FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
@@ -2856,7 +2707,7 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
     const size_t uid_data_size = psa_cs_testdata_vec2_len;
     size_t uid_data_length = psa_cs_testdata_vec2_len;
 
-    psa_debug( " Entry: seqnum_dat=%d, seqnum_bak=%d, cflags=%d\n", seqnum_dat, seqnum_bak, cflags );
+    psa_debug( " Entry:%s: seqnum_dat=%d, seqnum_bak=%d, cflags=%d\n", __FUNCTION__, seqnum_dat, seqnum_bak, cflags );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
 
@@ -2888,10 +2739,7 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
     PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum_bak).dat exists */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT, uid_fn ) );
     status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
     psa_assert( status == PSA_SUCCESS );
 
@@ -2926,10 +2774,7 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
         psa_assert( ret == 0 );
     }
 
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
+    psa_assert( PSA_SUCCESS == psa_cs_test_case_get_filename( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, r_seqnum, uid_bak_fn ) );
     status = psa_cs_read_file_core( uid_bak_fn, &info, &p_stream, state.api, &r_seqnum );
     psa_assert( status == PSA_SUCCESS );
     if((uint8_t) ( seqnum_dat - seqnum_bak ) < PSA_CS_FILE_HEADER_MAGIC_SEQNUM_MAX/2 )
@@ -2963,20 +2808,12 @@ static psa_status_t psa_ps_test_tc53_seqnum( uint8_t seqnum_dat, uint8_t seqnum_
     }
     psa_assert( psa_cs_num_file_objects == 2 );
     /* Check xxxx_<seqnum_dat>.bak is not present */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, seqnum_dat );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_ERROR_DOES_NOT_EXIST );
-    psa_assert( p_stream == NULL );
+    psa_assert( PSA_SUCCESS == psa_cs_check_no_file( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum_dat, uid_fn ) );
 
-    ret = scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_tmp_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
-    ret = scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort );
-    psa_assert( ret == 0 );
+    psa_assert( scandir( state.dirname, &dirent_list, psa_cs_bad_file_filter, versionsort ) == 0 );
     free( dirent_list );
 
     /* remove uid file objects for uid1 and uid3.*/
@@ -3005,7 +2842,7 @@ static psa_status_t psa_ps_test_tc53_core( psa_storage_create_flags_t cflags )
     const uint8_t tc53d_seqnum_dat = 1;
     const uint8_t tc53d_seqnum_bak = 0;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc53_seqnum( tc53a_seqnum_dat, tc53a_seqnum_bak, cflags ) == 0 );
     psa_assert( psa_ps_test_tc53_seqnum( tc53b_seqnum_dat, tc53b_seqnum_bak, cflags ) == 0 );
     psa_assert( psa_ps_test_tc53_seqnum( tc53c_seqnum_dat, tc53c_seqnum_bak, cflags ) == 0 );
@@ -3030,7 +2867,7 @@ static psa_status_t psa_ps_test_tc53_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc53( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc53_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -3043,7 +2880,7 @@ psa_status_t psa_ps_test_tc53( void )
  */
 psa_status_t psa_ps_test_tc153( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc53_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -3065,7 +2902,7 @@ static psa_status_t psa_ps_test_tc54_core( psa_storage_create_flags_t cflags )
     const uint8_t tc54d_seqnum_dat = 0;
     const uint8_t tc54d_seqnum_bak = 1;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc53_seqnum( tc54a_seqnum_dat, tc54a_seqnum_bak, cflags ) == 0 );
     psa_assert( psa_ps_test_tc53_seqnum( tc54b_seqnum_dat, tc54b_seqnum_bak, cflags ) == 0 );
     psa_assert( psa_ps_test_tc53_seqnum( tc54c_seqnum_dat, tc54c_seqnum_bak, cflags ) == 0 );
@@ -3091,7 +2928,7 @@ static psa_status_t psa_ps_test_tc54_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc54( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc54_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -3104,7 +2941,7 @@ psa_status_t psa_ps_test_tc54( void )
  */
 psa_status_t psa_ps_test_tc154( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc54_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
@@ -3159,11 +2996,7 @@ static psa_status_t psa_ps_test_tc55_seqnum( uint8_t seqnum, psa_storage_create_
 {
     char uid_fn[PSA_CS_FILENAME_LENGTH];
     char uid_bak_fn[PSA_CS_FILENAME_LENGTH];
-    uint8_t uid_data[psa_cs_testdata_vec1_len];
-    uint8_t r_seqnum = PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT;
     int ret = 0;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
-    FILE *p_stream = NULL;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     const psa_storage_uid_t uid = PSA_CS_TEST_UID2;
     struct psa_storage_info_t info;
@@ -3171,11 +3004,8 @@ static psa_status_t psa_ps_test_tc55_seqnum( uint8_t seqnum, psa_storage_create_
     psa_cs_recovery_state_t state;
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
     psa_cs_extended_data_t ex_data = { PSA_CS_API_PS, seqnum };
-    const size_t uid_data_offset = 0;
-    const size_t uid_data_size = psa_cs_testdata_vec2_len;
-    size_t uid_data_length = psa_cs_testdata_vec2_len;
 
-    psa_debug( " Entry: seqnum=%d, cflags=%d\n", seqnum, cflags );
+    psa_debug( " Entry:%s: seqnum=%d, cflags=%d\n", __FUNCTION__, seqnum, cflags );
     memset( &info, 0, sizeof( info ) );
     memset( &state, 0, sizeof( state ) );
 
@@ -3200,33 +3030,13 @@ static psa_status_t psa_ps_test_tc55_seqnum( uint8_t seqnum, psa_storage_create_
     PSA_CS_CHECK_NUM_FILE_OBJECTS( 3 );
 
     /* Check xxxx(seqnum).dat exists */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_DATA_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_fn, get_filename_flags, PSA_CS_FILE_HEADER_MAGIC_SEQNUM_INIT );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_DATA_FILE, state.api, seqnum, uid_fn ) );
 
     /* Check xxxx.dat data is as expected i.e. it hasn't changed. */
-    status = psa_cs_get( uid, uid_data_offset, uid_data_size, uid_data, &uid_data_length, state.api );
-    psa_assert( status == PSA_SUCCESS );
-    ret = memcmp( psa_cs_testdata_vec2, uid_data, psa_cs_testdata_vec2_len );
-    psa_assert( ret == 0 );
-    psa_assert( uid_data_length == psa_cs_testdata_vec2_len );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_data( uid, (void*) psa_cs_testdata_vec2, psa_cs_testdata_vec2_len, state.api ) );
 
     /* Check xxxx_<seqnum>.bak exists */
-    get_filename_flags = PSA_CS_GET_FILENAME_F_BAK_FILE;
-    get_filename_flags |= state.api == PSA_CS_API_ITS ? PSA_CS_GET_FILENAME_F_API_ITS : PSA_CS_GET_FILENAME_F_NONE;
-    status = psa_cs_get_filename( uid, uid_bak_fn, get_filename_flags, r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    status = psa_cs_read_file_core( uid_bak_fn, &info, &p_stream, state.api, &r_seqnum );
-    psa_assert( status == PSA_SUCCESS );
-    psa_assert( r_seqnum == seqnum );
-    psa_assert( p_stream != NULL );
-    fclose( p_stream );
+    psa_assert( PSA_SUCCESS == psa_cs_check_file_seqnum( uid, PSA_CS_GET_FILENAME_F_BAK_FILE, state.api, seqnum, uid_bak_fn ) );
 
     status = psa_cs_remove( uid, state.api );
     if( ! ( cflags & PSA_STORAGE_FLAG_WRITE_ONCE ) )
@@ -3283,7 +3093,7 @@ static psa_status_t psa_ps_test_tc55_core( psa_storage_create_flags_t cflags )
     const uint8_t tc55d_seqnum = 128;
     const uint8_t tc55e_seqnum = 1;
 
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     psa_assert( psa_ps_test_tc55_seqnum( tc55a_seqnum, cflags ) == 0 );
     psa_assert( psa_ps_test_tc55_seqnum( tc55b_seqnum, cflags ) == 0 );
     psa_assert( psa_ps_test_tc55_seqnum( tc55c_seqnum, cflags ) == 0 );
@@ -3309,7 +3119,7 @@ static psa_status_t psa_ps_test_tc55_core( psa_storage_create_flags_t cflags )
  */
 psa_status_t psa_ps_test_tc55( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc55_core ( PSA_STORAGE_FLAG_NONE );
 }
 
@@ -3321,7 +3131,7 @@ psa_status_t psa_ps_test_tc55( void )
  */
 psa_status_t psa_ps_test_tc155( void )
 {
-    psa_debug( " %s\n", "Entry" );
+    psa_debug( "Entry:%s\n", __FUNCTION__ );
     return psa_ps_test_tc55_core ( PSA_STORAGE_FLAG_WRITE_ONCE );
 }
 
