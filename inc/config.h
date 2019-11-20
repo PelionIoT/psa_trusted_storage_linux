@@ -26,6 +26,13 @@
 #endif
 
 /**
+ * \def PSA_STORAGE_DEBUG
+ *
+ * Define this symbol for a debug build to emit trace.
+ */
+//#define PSA_STORAGE_DEBUG 1
+
+/**
  * \def PSA_STORAGE_FILE_C_STORAGE_PREFIX
  *
  * Define the path to the directory for Internal Trusted Storage
@@ -62,6 +69,14 @@
 #if ! defined ( PSA_STORAGE_MAX_SIZE )
 #define PSA_STORAGE_MAX_SIZE 0x01000000
 #endif
+
+/**
+ * \def PSA_STORAGE_TEST
+ *
+ * Define this symbol to build a module test code into the library
+ * and test apps.
+ */
+//#define PSA_STORAGE_TEST 1
 
 
 #endif /* PSA_STORAGE_CONFIG_H */

@@ -82,7 +82,7 @@ psa_status_t psa_ps_set( psa_storage_uid_t uid,
                           const void *p_data,
                           psa_storage_create_flags_t create_flags )
 {
-    return psa_cs_set( uid, data_length, p_data, create_flags, PSA_CS_API_PS );
+    return psa_cs_set( uid, data_length, p_data, create_flags, PSA_CS_API_PS, NULL );
 }
 
 /******************************************************************************

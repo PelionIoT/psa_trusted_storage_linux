@@ -468,6 +468,7 @@ int hexcmp( uint8_t * a, uint8_t * b, uint32_t a_len, uint32_t b_len )
 #define TEST_SUITE_ACTIVE
 
 #include "psa/protected_storage.h"
+#include "psa/psa_storage_test.h"
 
 /* Internal definitions of the implementation, copied for the sake of
  * some of the tests and of the cleanup code. */
@@ -1344,9 +1345,9 @@ const char* mbl_crypto_storage_test_suite_psa_ps_datax_str[] = {
     "Multiple files",
     "2:int:5:int:5",
     "Non-existent file",
-    NULL
+    "3:int:5:int:4",
+    NULL,
 };
-
 
 /**
  * \brief
@@ -1624,6 +1625,22 @@ int execute_tests( int argc , const char ** argv )
 
 /* Main Test code */
 
+#ifdef PSA_STORAGE_TEST
+extern psa_status_t psa_ps_test_tc1( void );
+extern psa_status_t psa_ps_test_tc2( void );
+extern psa_status_t psa_ps_test_tc51( void );
+extern psa_status_t psa_ps_test_tc52( void );
+extern psa_status_t psa_ps_test_tc53( void );
+extern psa_status_t psa_ps_test_tc54( void );
+extern psa_status_t psa_ps_test_tc54( void );
+extern psa_status_t psa_ps_test_tc101( void );
+extern psa_status_t psa_ps_test_tc102( void );
+extern psa_status_t psa_ps_test_tc151( void );
+extern psa_status_t psa_ps_test_tc152( void );
+extern psa_status_t psa_ps_test_tc153( void );
+extern psa_status_t psa_ps_test_tc154( void );
+extern psa_status_t psa_ps_test_tc155( void );
+#endif /* PSA_STORAGE_TEST */
 
 /**
  * \brief       Program main. Invokes platform specific execute_tests().
@@ -1636,6 +1653,91 @@ int execute_tests( int argc , const char ** argv )
 int main( int argc, const char *argv[] )
 {
     int ret = -1;
+
+#ifdef PSA_STORAGE_TEST
+    int i = 0;
+
+    psa_status_t (*test_cases[])(void) = {
+            psa_ps_test_tc1,
+            psa_ps_test_tc2,
+            psa_ps_test_tc51,
+            psa_ps_test_tc52,
+            psa_ps_test_tc53,
+            psa_ps_test_tc54,
+            psa_ps_test_tc55,
+            psa_ps_test_tc101,
+            psa_ps_test_tc102,
+            psa_ps_test_tc151,
+            psa_ps_test_tc152,
+            psa_ps_test_tc153,
+            psa_ps_test_tc154,
+            psa_ps_test_tc155,
+            NULL
+            };
+
+    const char* tc_description[] = {
+          /* 01234567890123456789012345678901234567890123456789012345678901234567890123456789  */
+            "TC001: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE unset)                  %s\n",
+            "TC002: Rcvr .dat from 0 dat, 1 .bak, F_WRITE_ONCE unset                %s\n",
+            "TC003: Report error for 0 .dat, 0 .bak, 1 .tmp, F_WRITE_ONCE unset)    %s\n",
+            "TC051: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE unset)            %s\n",
+            "TC052: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE unset)            %s\n",
+            "TC053: Rcvr .dat (1 .dat(new, mismatched), 1 .bak, F_WRITE_ONCE unset) %s\n",
+            "TC054: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE unset %s\n",
+            "TC055: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE unset)                  %s\n",
+            "TC101: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE set)                    %s\n",
+            "TC102: Rcvr .dat (0 dat, 1 .bak, F_WRITE_ONCE set)                     %s\n",
+            "TC151: Rcvr .dat (1 .dat (new), 2 .bak, F_WRITE_ONCE set)              %s\n",
+            "TC152: Rcvr .dat (1 .dat (old), 2 .bak, F_WRITE_ONCE set)              %s\n",
+            "TC153: Rcvr .dat (1 .dat (new, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n",
+            "TC154: Rcvr .dat (1 .dat (old, mismatched), 1 .bak, F_WRITE_ONCE set)  %s\n",
+            "TC155: Rcvr .bak (1 .dat, 0 .bak, F_WRITE_ONCE set)                    %s\n",
+            NULL,
+            };
+
+#endif
+
+    mbedtls_fprintf( stdout, "\n\n" );
+    mbedtls_fprintf( stdout, "PSA Storage Tests Derived from mbed-crypto Tests\n" );
+    mbedtls_fprintf( stdout, "================================================\n\n" );
     ret = execute_tests( argc, argv );
+    mbedtls_fprintf( stdout, "Execute_tests                  %s\n", ret < 0 ? "FAIL" : "PASS" );
+    if( ret < 0 )
+    {
+        ret = -1;
+        goto out0;
+    }
+
+#ifdef PSA_STORAGE_TEST
+    /* module testing */
+    mbedtls_fprintf( stdout, "\n\n" );
+    mbedtls_fprintf( stdout, "Robustness Against Power Failure Test Cases\n" );
+    mbedtls_fprintf( stdout, "===========================================\n" );
+    mbedtls_fprintf( stdout, "\n");
+    while( test_cases[i] != NULL)
+    {
+#ifdef PSA_STORAGE_DEBUG
+        mbedtls_fprintf( stdout, "\n\n");
+        mbedtls_fprintf( stdout, tc_description[i], "Starting" );
+        mbedtls_fprintf( stdout, "===============================================================================\n");
+        mbedtls_fprintf( stdout, "\n");
+#endif /* PSA_STORAGE_DEBUG */
+        ret = test_cases[i]();
+#ifdef PSA_STORAGE_DEBUG
+        mbedtls_fprintf( stdout, "\n\n");
+        mbedtls_fprintf( stdout, tc_description[i], "Ended" );
+        mbedtls_fprintf( stdout, "============================================================================\n");
+        mbedtls_fprintf( stdout, "\n");
+#endif /* PSA_STORAGE_DEBUG */
+        if( ret != PSA_SUCCESS )
+        {
+            goto out0;
+        }
+        mbedtls_fprintf( stdout, tc_description[i], ret < 0 ? "FAIL" : "PASS");
+        i++;
+    }
+#endif /* PSA_STORAGE_TEST */
+
+out0:
     return( ret );
 }

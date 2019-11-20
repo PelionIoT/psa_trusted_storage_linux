@@ -13,7 +13,7 @@ psa_status_t psa_its_set(psa_storage_uid_t uid,
                          psa_storage_create_flags_t create_flags)
 {
 
-    return psa_cs_set(uid, data_length, p_data, create_flags, PSA_CS_API_ITS );
+    return psa_cs_set(uid, data_length, p_data, create_flags, PSA_CS_API_ITS, NULL );
 
 }
 
