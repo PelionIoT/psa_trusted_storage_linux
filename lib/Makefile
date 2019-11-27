@@ -42,6 +42,7 @@ all: ${TARGET_LIB} $(STATIC_LIB)
 $(TARGET_LIB): $(OBJS)
 	$(CC) ${LDFLAGS} $(LOCAL_LDFLAGS) -o $@ $^
 	ln -sf $(TARGET_LIB) $(SONAME)
+	ln -sf $(SONAME) $(SOLINKERNAME)
 
 $(STATIC_LIB): $(OBJS)
 	$(AR) $(LOCAL_ARFLAGS) $@ $^

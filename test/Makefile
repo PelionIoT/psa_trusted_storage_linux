@@ -47,9 +47,10 @@
 # - host gcc compiler.
 ###############################################################################
 
+PREFIX=usr/local
 CFLAGS="-I$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -I$(TOPDIR)/$(PSA_STORAGE_DIR)/configs -DMBEDTLS_CONFIG_FILE='<mbed_crypto_psa_storage_config.h>'"
-LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib
-LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib -lpsastorage"
+LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib
+LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib -lpsastorage"
 
 # MBED_CRYPTO_PATCHXxx are the symbols used to manage patching mbed-crypto
 # to leverage mbed-crypto tests for PSA storage testing.
@@ -93,7 +94,7 @@ TOPDIR = $(shell pwd)
 
 # PSA_STORAGE_LIB_FILENAME is the location of the installed
 # psa_trusted_storage_linux library
-PSA_STORAGE_LIB_FILENAME=$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib/libpsastorage.so
+PSA_STORAGE_LIB_FILENAME=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib/libpsastorage.so
 
 # PSA_CRYPTO_LIB_FILENAME is the location of the installed
 # mbed-crypto library
@@ -178,7 +179,7 @@ test-mbed-crypto-key: $(TEST_DIR)
 ###############################################################################
 .PHONY: psa-storage
 psa-storage:
-	make -C $(PSA_STORAGE_DIR) CFLAGS=$(PSA_CFLAGS)
+	make -C $(PSA_STORAGE_DIR) CFLAGS=$(PSA_CFLAGS) prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)
 
 .PHONY: psa-storage-clean
 psa-storage-clean:
@@ -186,7 +187,7 @@ psa-storage-clean:
 
 .PHONY: psa-storage-install
 psa-storage-install: psa-storage
-	make -C $(PSA_STORAGE_DIR) install prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local
+	make -C $(PSA_STORAGE_DIR) install prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)
 
 .PHONY: test-psa-storage-app
 test-psa-storage-app: $(TEST_DIR) psa-storage
