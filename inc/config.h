@@ -53,6 +53,10 @@
  * requirements whilst not exhausting available system storage resources.
  * The total number of files is the sum of files allocated for both
  * internal trusted storage and protected storage file objects.
+ *
+ * Each application (process instance) has a maximum of PSA_STORAGE_FILE_MAX
+ * files. If N processes are active in the system then the maximum number
+ * of files is N * PSA_STORAGE_FILE_MAX.
  */
 #if ! defined ( PSA_STORAGE_FILE_MAX )
 #define PSA_STORAGE_FILE_MAX 1000

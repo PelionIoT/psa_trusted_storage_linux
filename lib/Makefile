@@ -18,9 +18,10 @@ INSTALL = install
 RM = rm -f
 
 
-CFLAGS ?= -O2 -g
+#CFLAGS ?= -g3 -gstabs+
+CFLAGS ?=
 LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
-LOCAL_LDFLAGS ?= -shared
+LOCAL_LDFLAGS ?= -shared -lpthread
 LOCAL_ARFLAGS ?= rcs
 TARGET_NAME = libpsastorage
 
@@ -50,7 +51,7 @@ $(SRCS:.c=.d):%.d:%.c
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -MM $< >$@
 
 .c.o:
-	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -c $< -o $@
+	$(CC) -g3 -gstabs+ $(CFLAGS) $(LOCAL_CFLAGS) -c $< -o $@
 
 include $(SRCS:.c=.d)
 

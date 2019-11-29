@@ -45,6 +45,8 @@ psa_status_t psa_ps_test_tc152( void );
 psa_status_t psa_ps_test_tc153( void );
 psa_status_t psa_ps_test_tc154( void );
 psa_status_t psa_ps_test_tc155( void );
+psa_status_t psa_ps_test_tc201( void );
+psa_status_t psa_ps_test_tc203( void );
 
 #ifdef __cplusplus
 }

@@ -12,7 +12,7 @@
 
 /* IHI0087-PS_-Storage_API_1.0.0.pdf specifies 0 to be an invalid uid value
  * and should be treated as an error */
-#define PSA_STORATE_UID_INVALID_VALUE       0
+#define PSA_STORAGE_UID_INVALID_VALUE       0
 
 typedef enum
 {

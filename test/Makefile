@@ -81,6 +81,7 @@ PSA_STORAGE_DIR=psa_trusted_storage_linux
 PSA_STORAGE_MANIFEST_NAME=psa-storage-test-manifest.xml
 PSA_STORAGE_PINNED_MANIFEST_NAME=psa-storage-test-pinned-manifest.xml
 PSA_STORAGE_REPO_BRANCH=master
+PSA_STORAGE_MULTI_THREAD_TEST_SCRIPT=psa_test_case_201.sh
 
 # TEST_DIR is the location where PSA storage object files are created/removed
 # as part of testing. The path is specified as
@@ -90,6 +91,14 @@ PSA_STORAGE_REPO_BRANCH=master
 TEST_DIR="$(TOPDIR)/test/"
 
 TOPDIR = $(shell pwd)
+
+# PSA_STORAGE_LIB_FILENAME is the location of the installed
+# psa_trusted_storage_linux library
+PSA_STORAGE_LIB_FILENAME=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib/libpsastorage.so
+
+# PSA_CRYPTO_LIB_FILENAME is the location of the installed
+# mbed-crypto library
+PSA_CRYPTO_LIB_FILENAME=$(TOPDIR)/$(PSA_CRYPTO_DIR)/library/libmbedcrypto.a
 
 ###############################################################################
 # Standard targets
@@ -183,6 +192,10 @@ psa-storage-install: psa-storage
 .PHONY: test-psa-storage-app
 test-psa-storage-app: $(TEST_DIR) psa-storage
 	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) && cd $(PSA_STORAGE_DIR)/app && ./psa-storage-example-app -v && cd ../..
+
+.PHONY: test-psa-storage-app-mt
+test-psa-storage-app-mt: $(TEST_DIR) psa-storage
+	export LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) && export PATH=$(PATH):$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/bin && $(PSA_STORAGE_DIR)/test/$(PSA_STORAGE_MULTI_THREAD_TEST_SCRIPT)
 
 ###############################################################################
 # Workspace management targets
