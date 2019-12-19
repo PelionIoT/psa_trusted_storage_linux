@@ -59,7 +59,8 @@
  * of files is N * PSA_STORAGE_FILE_MAX.
  */
 #if ! defined ( PSA_STORAGE_FILE_MAX )
-#define PSA_STORAGE_FILE_MAX 1000
+//#define PSA_STORAGE_FILE_MAX 1000
+#define PSA_STORAGE_FILE_MAX 20000
 #endif
 
 /**
@@ -80,7 +81,7 @@
  * Define this symbol to build a module test code into the library
  * and test apps.
  */
-//#define PSA_STORAGE_TEST 1
+#define PSA_STORAGE_TEST 1
 
 
 #endif /* PSA_STORAGE_CONFIG_H */
