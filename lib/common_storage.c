@@ -176,6 +176,10 @@
       PSA_CS_FILENAME_TID_PATTERN_LEN         /* TID (32-bit number in hex) */  \
      )
 
+/* PSA_CS_PATH_FILENAME_LENGTH is the buffer length for the full path and filename of a file
+ * i.e. including the storage directory. */
+#define PSA_CS_PATH_FILENAME_LENGTH       ( PSA_CS_FILENAME_LENGTH + sizeof( struct dirent ) )
+
 /* The maximum value of psa_storage_info_t.size */
 #define PSA_CS_MAX_SIZE 0xffffffff
 
@@ -835,7 +839,6 @@ out:
     return status;
 }
 
-// todo consolidate _dec and _inc into 1 function
 
 /* FUNCTION: psa_cs_num_file_dec()
  *   Decrement global statistics i.e. decrement the total count of number of
@@ -1555,7 +1558,7 @@ err0:
 psa_status_t psa_cs_recover( psa_cs_recovery_state_t *state )
 {
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
-    char filename[PSA_CS_TMP_FILENAME_LENGTH];
+    char filename[PSA_CS_PATH_FILENAME_LENGTH];
     int ret = 0;
     int num_files = 0;
 
@@ -1617,7 +1620,7 @@ psa_status_t psa_cs_recover( psa_cs_recovery_state_t *state )
     num_files = state->num_lck_files;
     while( num_files-- )
     {
-        snprintf( filename, PSA_CS_TMP_FILENAME_LENGTH, "%s%s", state->dirname, state->lck_list[num_files]->d_name );
+        snprintf( filename, PSA_CS_PATH_FILENAME_LENGTH, "%s%s", state->dirname, state->lck_list[num_files]->d_name );
         remove( filename );
         free( state->lck_list[num_files] );
     }
@@ -1628,7 +1631,7 @@ err4:
     num_files = state->num_tmp_files;
     while( num_files-- )
     {
-        snprintf( filename, PSA_CS_TMP_FILENAME_LENGTH, "%s%s", state->dirname, state->tmp_list[num_files]->d_name );
+        snprintf( filename, PSA_CS_PATH_FILENAME_LENGTH, "%s%s", state->dirname, state->tmp_list[num_files]->d_name );
         remove( filename );
         free( state->tmp_list[num_files] );
     }
@@ -1655,7 +1658,7 @@ err1:
     num_files = state->num_bad_files;
     while( num_files-- )
     {
-        snprintf( filename, PSA_CS_FILENAME_LENGTH, "%s%s", state->dirname, state->bad_list[num_files]->d_name );
+        snprintf( filename, PSA_CS_PATH_FILENAME_LENGTH, "%s%s", state->dirname, state->bad_list[num_files]->d_name );
         remove( filename );
         free( state->bad_list[num_files] );
     }
@@ -2384,16 +2387,17 @@ typedef int ( *psa_scandir_filter )( const struct dirent * );
 static psa_status_t psa_cs_test_init( uint32_t delete_files )
 {
     const char *api_prefix[PSA_CS_API_MAX] = { PSA_CS_ITS_SUBPREFIX, PSA_CS_PS_SUBPREFIX };
-    char filename[PSA_CS_FILENAME_LENGTH];
+    char filename[PSA_CS_PATH_FILENAME_LENGTH];
     int i = 0;
     int j = 0;
     int num_files = 0;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_cs_recovery_state_t state;
     psa_scandir_filter filters[] = {psa_cs_bad_file_filter, psa_cs_bak_file_filter, psa_cs_dat_file_filter, psa_cs_tmp_file_filter_ex };
-    struct dirent **list[] = {state.bad_list, state.bak_list, state.dat_list, state.tmp_list };
+    struct dirent **list[] = { NULL, NULL, NULL, NULL };
     psa_cs_num_file_objects = PSA_CS_NUM_FILE_OBJECTS_SENTINEL;
     psa_cs_init_fsm_state = PSA_CS_INIT_STATE_UNINITIALIZED;
+    const unsigned int num_filters = sizeof(filters)/sizeof(filters[0]);
 
     psa_debug( " %s\n", "Entry" );
     /* remove any data object remaining */
@@ -2402,9 +2406,9 @@ static psa_status_t psa_cs_test_init( uint32_t delete_files )
         memset( &state, 0 , sizeof( state ) );
         for( i = 0; i < PSA_CS_API_MAX; i++ )
         {
-            for( j = 0; j < 4; j++ )
+            for( j = 0; j < num_filters; j++ )
             {
-                snprintf( state.dirname, PSA_CS_FILENAME_LENGTH, "%s%s", PSA_CS_PREFIX, api_prefix[i] );
+                snprintf( state.dirname, PSA_CS_PATH_FILENAME_LENGTH, "%s%s", PSA_CS_PREFIX, api_prefix[i] );
                 num_files = scandir( state.dirname, &list[j], filters[j], versionsort );
                 if( num_files < 0 )
                 {
@@ -2413,7 +2417,7 @@ static psa_status_t psa_cs_test_init( uint32_t delete_files )
                 }
                 while( num_files-- > 0 )
                 {
-                    snprintf( filename, PSA_CS_FILENAME_LENGTH, "%s%s", state.dirname, list[j][num_files]->d_name );
+                    snprintf( filename, PSA_CS_PATH_FILENAME_LENGTH, "%s%s", state.dirname, list[j][num_files]->d_name );
                     remove( filename );
                     free( list[j][num_files] );
                 }

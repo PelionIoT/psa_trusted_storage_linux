@@ -1542,6 +1542,7 @@ int execute_tests( int argc , const char ** argv )
                     /* Redirection has failed with no stdout so exit */
                     exit( 1 );
             }
+            stdout_fd = -1;
 #endif /* __unix__ || __APPLE__ __MACH__ */
 
         }
@@ -1614,6 +1615,12 @@ int execute_tests( int argc , const char ** argv )
     mbedtls_fprintf( stdout, " (%d / %d tests (%d skipped))\n",
              total_tests - total_errors, total_tests, total_skipped );
 
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+    if( stdout_fd != -1 )
+    {
+        close_output( stdout );
+    }
+#endif /* __unix__ || __APPLE__ __MACH__ */
     return( total_errors != 0 );
 }
 
