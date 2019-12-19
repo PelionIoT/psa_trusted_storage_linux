@@ -33,7 +33,7 @@ RMR = rm -fR
 all: lib app
 
 .PHONY: app
-app: install_lib
+app: lib
 	$(MAKE) -C app libdir=$(libdir) major=$(major) minor=$(minor) rel=$(rel)
 
 .PHONY: lib
