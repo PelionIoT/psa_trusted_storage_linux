@@ -44,111 +44,80 @@
 #include <pthread.h>
 #endif
 
+/* Terms used in comments and code:
+ * - ITS    Internal Trusted Storage.
+ * - OFD    fcntl() Open File Description (OFD) locks.
+ * - PID    Process ID (PID) returned from getpid().
+ * - PS     Protected Storage.
+ * - RUID   Real user ID returned from getuid() (32 bit).
+ *          RUID is the PSA storage partition identifier.
+ * - seqnum Sequence number (8 bit).
+ *   TID    Thread ID returned from syscall(SYS_gettid).
+ * - UID    PSA storage unique file object ID (64 bit). */
+
 #define PSA_CS_PREFIX PSA_STORAGE_FILE_C_STORAGE_PREFIX
 
-/* PSA_CS_FILENAME_LOCK_GLOBAL
- *   Name of the global lock file used to police access to globally shared
- *   resources.
- */
-#define PSA_CS_FILENAME_LOCK_GLOBAL     "psa_global" PSA_CS_LOCK_FILE_SUFFIX
+/* PSA_CS_FILENAME_LOCK_OFD
+ *   Name of the OFD lock file used to police access to shared
+ *   resources. */
+#define PSA_CS_FILENAME_LOCK_OFD     "psa_global" PSA_CS_LOCK_FILE_SUFFIX
 
-/* PSA_CS_FILENAME_XUID_PATTERN
- *   Filename pattern for the:
- *   - Real User ID (RUID) returned from getuid().
- *   - Process ID (PID) returned from getpid().
- *   - Thread ID (TID) returned from gettid().
- */
+/* PSA_CS_FILENAME_XUID_PATTERN is the base filename pattern used for RUID, PID and TID patterns. */
 #define PSA_CS_FILENAME_XUID_PATTERN "%08lx_"
 
-/* PSA_CS_FILENAME_XUID_PATTERN_LEN
- *   String length of PSA_CS_FILENAME_XUID_PATTERN.
- */
+/* PSA_CS_FILENAME_XUID_PATTERN_LEN is the XUID pattern string length.
+ * This is used for defining the RUID, PID and TID patterns. */
 #define PSA_CS_FILENAME_XUID_PATTERN_LEN 9
 
-/* PSA_CS_FILENAME_UID_PATTERN
- *   Filename pattern for the PSA Storage Unique ID (UID)
- */
+/* PSA_CS_FILENAME_UID_PATTERN is the PSA Storage Unique ID (UID) pattern. */
 #define PSA_CS_FILENAME_UID_PATTERN "%08lx%08lx"
 
-/* PSA_CS_FILENAME_XUID_PATTERN_LEN
- *   String length of PSA_CS_FILENAME_XUID_PATTERN.
- */
+/* PSA_CS_FILENAME_UID_PATTERN_LEN is the PSA_CS_FILENAME_UID_PATTERN string length. */
 #define PSA_CS_FILENAME_UID_PATTERN_LEN 16
 
-/* PSA_CS_FILENAME_RUID_PATTERN
- *   Filename pattern for the Real User ID (RUID) used to compose
- *   the file object filename. <ruid>_<uid>.dat
- *   where:
- *     ruid = real user ID returned from getuid() (32 bit).
- *     uid = PSA storage unique file object ID (64 bit).
- *   ruid is used as the PSA storage partition identifier.
- */
+/* PSA_CS_FILENAME_RUID_PATTERN is the RUID filename pattern used in the file
+ * object filename <RUID>_<UID>.dat. */
 #define PSA_CS_FILENAME_RUID_PATTERN PSA_CS_FILENAME_XUID_PATTERN
 
-/* PSA_CS_FILENAME_RUID_PATTERN_LEN
- *   String length of PSA_CS_FILENAME_RUID_PATTERN.
- */
+/* PSA_CS_FILENAME_RUID_PATTERN_LEN is the PSA_CS_FILENAME_RUID_PATTERN string length. */
 #define PSA_CS_FILENAME_RUID_PATTERN_LEN PSA_CS_FILENAME_XUID_PATTERN_LEN
 
-/* PSA_CS_FILENAME_PATTERN
- *   File object data is stored in a filename of the form:
- *     <UID>_<uid>.dat
- *   where:
- *     UID = user ID returned from getuid() (32 bit)
- *     uid = PSA storage unique file object ID (64 bit).
- */
+/* PSA_CS_FILENAME_PATTERN is the filename pattern for the file data object used in the
+ * filename <RUID>_<UID>.dat. */
 #define PSA_CS_FILENAME_PATTERN     PSA_CS_FILENAME_RUID_PATTERN PSA_CS_FILENAME_UID_PATTERN
 
-/* PSA_CS_FILENAME_PATTERN_LEN
- *   String length of PSA_CS_FILENAME_PATTERN.
- */
+/* PSA_CS_FILENAME_PATTERN_LEN is the PSA_CS_FILENAME_PATTERN string length. */
 #define PSA_CS_FILENAME_PATTERN_LEN (PSA_CS_FILENAME_RUID_PATTERN_LEN + PSA_CS_FILENAME_UID_PATTERN_LEN)
 
-/* PSA_CS_BAK_FILENAME_PATTERN
- *   File object data is stored in a filename of the form:
- *     <ruid>_<uid>_<seqnum>.dat
- *   where:
- *     ruid = user ID returned from getuid() (32 bit)
- *     uid = PSA storage unique file object ID (64 bit).
- *     seqnum = sequence number (8 bit).
- */
+/* PSA_CS_BAK_FILENAME_PATTERN is the filename pattern for the file data object
+ * backup filename <RUID>_<UID>_<seqnum>.bak. */
 #define PSA_CS_BAK_FILENAME_PATTERN     PSA_CS_FILENAME_RUID_PATTERN PSA_CS_FILENAME_UID_PATTERN "_%02x"
 
-/* PSA_CS_TMP_FILENAME_PATTERN related defines
- *   File object data is stored in a filename of the form:
- *     <ruid>_<pid>_<tid>_<uid>.dat
- *   where:
- *     ruid = user ID returned from getuid() (32 bit)
- *     pid = process ID returned from getpid() (32 bit).
- *     tid = thread ID returned from gettid() (32 bit).
- *     uid = PSA storage unique file object ID (64 bit).
- */
+/* PSA_CS_TMP_FILENAME_PATTERN is the file object temporary filename pattern of
+ * the form <RUID>_<PID>_<TID>_<UID>.tmp. */
 #define PSA_CS_FILENAME_PID_PATTERN                     PSA_CS_FILENAME_XUID_PATTERN
 #define PSA_CS_FILENAME_TID_PATTERN                     PSA_CS_FILENAME_XUID_PATTERN
 #define PSA_CS_TMP_FILENAME_RUID_PID_TID_PATTERN        PSA_CS_FILENAME_RUID_PATTERN PSA_CS_FILENAME_PID_PATTERN PSA_CS_FILENAME_TID_PATTERN
 #define PSA_CS_TMP_FILENAME_PATTERN                     PSA_CS_FILENAME_RUID_PATTERN PSA_CS_FILENAME_PID_PATTERN PSA_CS_FILENAME_TID_PATTERN PSA_CS_FILENAME_UID_PATTERN
 #define PSA_CS_LOCK_FILENAME_PATTERN                    PSA_CS_TMP_FILENAME_PATTERN
-#define PSA_CS_GLOBAL_LOCK_FILENAME_PATTERN             PSA_CS_FILENAME_RUID_PATTERN
+#define PSA_CS_OFD_LOCK_FILENAME_PATTERN                PSA_CS_FILENAME_RUID_PATTERN
 
-/* PSA_CS_TMP FILENAME_PATTERN_LEN related defines
- *   String length of PSA_CS_FILENAME_PATTERN.
- */
+/* PSA_CS_TMP FILENAME_PATTERN_LEN is the PSA_CS_FILENAME_PATTERN string length. */
 #define PSA_CS_FILENAME_PID_PATTERN_LEN                 PSA_CS_FILENAME_XUID_PATTERN_LEN
 #define PSA_CS_FILENAME_TID_PATTERN_LEN                 PSA_CS_FILENAME_XUID_PATTERN_LEN
 #define PSA_CS_FILENAME_RUID_PID_TID_PATTERN_LEN        (PSA_CS_FILENAME_RUID_PATTERN_LEN + PSA_CS_FILENAME_PID_PATTERN_LEN + PSA_CS_FILENAME_TID_PATTERN_LEN )
 #define PSA_CS_TMP_FILENAME_PATTERN_LEN                 (PSA_CS_FILENAME_RUID_PATTERN_LEN + PSA_CS_FILENAME_PID_PATTERN_LEN + PSA_CS_FILENAME_TID_PATTERN_LEN + PSA_CS_FILENAME_UID_PATTERN+LEN )
 #define PSA_CS_LOCK_FILENAME_PATTERN_LEN                PSA_CS_TMP_FILENAME_PATTERN_LEN
-#define PSA_CS_GLOBAL_LOCK_FILENAME_PATTERN_LEN         PSA_CS_FILENAME_RUID_PATTERN_LEN
+#define PSA_CS_OFD_LOCK_FILENAME_PATTERN_LEN            PSA_CS_FILENAME_RUID_PATTERN_LEN
 
 /* File extensions. If the first char is "." then for
  * portability there should be at most 3 more characters.
- * - BAD files:
+ * - BAD files are temporary file names used by psa_cs_copy_file().
  * - BAK files are file object data file backup files.
  * - DATA files contain the file object data.
  * - LOCK files are used to share data between execution contexts without
  *   using mutexes for example.
- * - TEMP files are temporary files used in the set() operation, for example.
- * */
+ * - TEMP files are temporary files used in the set() operation, for example. */
 #define PSA_CS_BAD_FILE_SUFFIX      ".bad"
 #define PSA_CS_BAK_FILE_SUFFIX      ".bak"
 #define PSA_CS_DATA_FILE_SUFFIX     ".psa"
@@ -157,14 +126,13 @@
 #define PSA_CS_TEMP_FILE_SUFFIX_LEN  (4+1)
 
 /* psa_cs_get_filename() flags
- *   Defines for flags used with psa_cs_get_filename().
- */
+ *   Defines for flags used with psa_cs_get_filename(). */
 #define PSA_CS_GET_FILENAME_F_NONE                     0
 #define PSA_CS_GET_FILENAME_F_API_ITS                  (1<<0)
 #define PSA_CS_GET_FILENAME_F_BAK_FILE                 (1<<1)
 #define PSA_CS_GET_FILENAME_F_DATA_FILE                (1<<2)
 #define PSA_CS_GET_FILENAME_F_LOCK_FILE                (1<<3)
-#define PSA_CS_GET_FILENAME_F_LOCK_GLOBAL_FILE         (1<<4)
+#define PSA_CS_GET_FILENAME_F_LOCK_OFD_FILE            (1<<4)
 #define PSA_CS_GET_FILENAME_F_TEMP_FILE                (1<<5)
 
 /* File objects created through the ITS API are stored in the
@@ -194,12 +162,12 @@
  * must be the same length as PSA_CS_ITS_SUBPREFIX which is
  * used to compute PSA_CS_FILENAME_LENGTH.*/
 #define PSA_CS_FILENAME_LENGTH                                                              \
-    ( sizeof( PSA_CS_PREFIX ) - 1 +             /* prefix without terminating 0*/           \
-      sizeof( PSA_CS_ITS_SUBPREFIX ) - 1 +      /* sub-prefix without terminating 0*/       \
-      PSA_CS_FILENAME_PATTERN_LEN +                   /* RUID (32-bit number in hex) and "_" and UID (64-bit number in hex)*/             \
-      PSA_SEQNUM_STRING_LENGTH +                /* "_" and 8-bit sequence number */         \
-      sizeof( PSA_CS_DATA_FILE_SUFFIX ) - 1 +   /* suffix without terminating 0*/           \
-      1                                         /* terminating null byte*/                  \
+    ( sizeof( PSA_CS_PREFIX ) - 1 +             /* Prefix without terminating 0. */         \
+      sizeof( PSA_CS_ITS_SUBPREFIX ) - 1 +      /* Sub-prefix without terminating 0. */     \
+      PSA_CS_FILENAME_PATTERN_LEN +             /* RUID + "_" + UID. */                     \
+      PSA_SEQNUM_STRING_LENGTH +                /* "_" and 8-bit sequence number. */        \
+      sizeof( PSA_CS_DATA_FILE_SUFFIX ) - 1 +   /* Suffix without terminating 0. */         \
+      1                                         /* Terminating null byte. */                \
      )
 
 #define PSA_CS_TMP_FILENAME_LENGTH                                              \
@@ -218,24 +186,6 @@
 #define PSA_INTERNAL_TRUSTED_STORAGE_MAGIC_STRING "PSA\0ITS\0"
 #define PSA_PROTECTED_STORAGE_MAGIC_STRING "PSA\0PST\0"
 #define PSA_CS_MAGIC_LENGTH 8
-
-/* PSA_CS_LOCK_GLOBAL_RETRIES_MAX is the number of time the global lock take()
- * function tries to take the lock before giving up. This occurs over a period
- * of PSA_CS_LOCK_GLOBAL_RETRIES_MAX * PSA_CS_LOCK_GLOBAL_SLEEP_S seconds. */
-#define PSA_CS_LOCK_GLOBAL_RETRIES_MAX      20
-
-/* PSA_CS_LOCK_GLOBAL_SLEEP_S is the time in seconds the global lock give()
- * function sleeps between attempts to take the lock. */
-#define PSA_CS_LOCK_GLOBAL_SLEEP_S          3
-
-/* PSA_CS_MAGIC_F_NONE
- *   All flags not set.
- * PSA_CS_MAGIC_F_BAK_FILE
- *  Meta-data flags in header store in file object data file.
- *  If this bit is set then the linked backup file is named
- *  <uid>.bk1, otherwise *  <uid>.bk0. */
-#define PSA_CS_MAGIC_F_NONE                             0
-#define PSA_CS_MAGIC_F_BAK_FILE                         (1<<0)
 
 #define PSA_CS_NUM_FILE_OBJECTS_SENTINEL                0xffffffff
 
@@ -364,11 +314,11 @@ typedef struct _psa_cs_recovery_state_t
 
 
 /* ENUMERATION: psa_cs_init_states_t
- *   State for initialisation FSM.
+ *   State for initialization FSM.
  */
 typedef enum _psa_cs_init_states_t
 {
-    PSA_CS_INIT_STATE_UNINITIALIZED = 0,    /* System starts in unintialized state. */
+    PSA_CS_INIT_STATE_UNINITIALIZED = 0,    /* System starts in uninitialized state. */
     PSA_CS_INIT_STATE_INITIALIZING,         /* System is performing initialization e.g. recovery process. */
     PSA_CS_INIT_STATE_INITIALIZED,          /* System has successfully initialized. */
     PSA_CS_INIT_STATE_FAILED,               /* System failed to initialized. */
@@ -439,7 +389,6 @@ static int psa_cs_tmp_lck_file_filter_core( const struct dirent *dir, const char
     const pid_t tid = syscall(SYS_gettid);
 
     snprintf( tmps_filter, PSA_CS_TMP_FILENAME_LENGTH, PSA_CS_TMP_FILENAME_RUID_PID_TID_PATTERN, (unsigned long int) ruid, (unsigned long int) pid, (unsigned long int) tid );
-
     if( len >= 0 )
     {
         if( strncmp( s, tmps_filter, PSA_CS_FILENAME_RUID_PID_TID_PATTERN_LEN ) == 0 )
@@ -481,8 +430,8 @@ static int psa_cs_bad_file_filter( const struct dirent *dir )
 
 /* FUNCTION: psa_cs_get_mktemp_filename
  *  Generate a process and thread safe temporary filename using getuid(),
- *  getpid() and gettid() in the filename.
- *  .
+ *  getpid() and syscall(SYS_gettid) in the filename.
+ *
  * ARGUMENTS:
  *   filename       On input, filename contains the directory path in which to create
  *                  the temporary file. It can be a filename path as dirname(filename)
@@ -637,10 +586,10 @@ err0:
  *    PSA_CS_GET_FILENAME_F_LOCK_FILE
  *      Generate filename for creating a lock file to share uid between
  *      execution processes. This is used for testing.
- *    PSA_CS_GET_FILENAME_F_LOCK_GLOBAL_FILE
- *      Generate filename for creating a global lock file which is used, for example,
- *      to ensure only one process gets exclusive access to resources e.g. to
- *      preform the recover process. The lock file is generated in PSA_CS_PREFIX
+ *    PSA_CS_GET_FILENAME_F_LOCK_OFD_FILE
+ *      Generate filename for creating a OFD lock file which is used, for example,
+ *      to ensure only one thread gets exclusive access to resources e.g. to
+ *      perform the recover process. The lock file is generated in PSA_CS_PREFIX
  *      and not in one of the api specific storage directories.
  *    PSA_CS_GET_FILENAME_F_TEMP_FILE
  *      Generate filename for temporary file object data file xxx.tmp.
@@ -718,20 +667,20 @@ static psa_status_t psa_cs_get_filename( psa_storage_uid_t uid, char *filename, 
                           PSA_CS_LOCK_FILE_SUFFIX );
         status = PSA_SUCCESS;
     }
-    else if( flags & PSA_CS_GET_FILENAME_F_LOCK_GLOBAL_FILE )
+    else if( flags & PSA_CS_GET_FILENAME_F_LOCK_OFD_FILE )
     {
-        snprintf( filename, len, "%s" PSA_CS_GLOBAL_LOCK_FILENAME_PATTERN "%s", PSA_CS_PREFIX, (unsigned long) ( ruid ), PSA_CS_FILENAME_LOCK_GLOBAL );
+        snprintf( filename, len, "%s" PSA_CS_OFD_LOCK_FILENAME_PATTERN "%s", PSA_CS_PREFIX, (unsigned long) ( ruid ), PSA_CS_FILENAME_LOCK_OFD );
         status = PSA_SUCCESS;
     }
     return( status );
 }
 
 
-/* FUNCTION: psa_global_lock_take()
+/* FUNCTION: psa_cs_lock_ofd_take()
  *
- * This function gains ownership of *the* global lock file. The lock is used
+ * This function gains ownership of the OFD lock file. The lock is used
  * to police access to resources shared by processes and/or threads. The
- * global lock is required because:
+ * lock is required because:
  * - Only 1 execution context (either process or thread) can perform
  *   initialization, to the exclusion of all other processes/threads. While
  *   initialization is being performed:
@@ -755,11 +704,11 @@ static psa_status_t psa_cs_get_filename( psa_storage_uid_t uid, char *filename, 
  *              holding the lock.
  *  PSA_Xxx     Failed to take the lock
  */
-static inline psa_status_t psa_global_lock_take( int *fd_lock )
+static inline psa_status_t psa_cs_lock_ofd_take( int *fd_lock )
 {
     char lock_filename[PSA_CS_FILENAME_LENGTH];
     int ret = -1;
-    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_LOCK_GLOBAL_FILE;
+    uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_LOCK_OFD_FILE;
     const uint8_t unused_seqnum = 0;
     psa_status_t status = PSA_ERROR_GENERIC_ERROR;
     psa_storage_uid_t unused_uid = PSA_STORAGE_UID_INVALID_VALUE;
@@ -806,13 +755,13 @@ out:
 }
 
 
-/* FUNCTION: psa_global_lock_give()
- *   This function yields the global lock file. See psa_global_lock_take()
+/* FUNCTION: psa_cs_lock_ofd_give()
+ *   This function yields the OFD lock file. See psa_cs_lock_ofd_take()
  *   for further details.
  * ARGUMENTS:
  *  fd_lock     pointer to storing the lock file descriptor.
  */
-static inline psa_status_t psa_global_lock_give( int *fd_lock )
+static inline psa_status_t psa_cs_lock_ofd_give( int *fd_lock )
 {
     int ret = -1;
     struct flock lck = {
@@ -857,7 +806,7 @@ static inline psa_status_t psa_cs_num_file_inc( size_t data_length )
     if( psa_cs_init_fsm_state != PSA_CS_INIT_STATE_INITIALIZING )
     {
         /* common case */
-        status = psa_global_lock_take( &fd_lock );
+        status = psa_cs_lock_ofd_take( &fd_lock );
         if( status != PSA_SUCCESS )
         {
             psa_debug( "Error: unable to take lock (%d)\n", status);
@@ -865,7 +814,7 @@ static inline psa_status_t psa_cs_num_file_inc( size_t data_length )
         }
         psa_cs_num_file_objects++;
         psa_cs_total_size += data_length;
-        status = psa_global_lock_give( &fd_lock );
+        status = psa_cs_lock_ofd_give( &fd_lock );
         if( status != PSA_SUCCESS )
         {
             psa_debug( "Error: unable to give lock (%d)\n", status);
@@ -886,6 +835,7 @@ out:
     return status;
 }
 
+// todo consolidate _dec and _inc into 1 function
 
 /* FUNCTION: psa_cs_num_file_dec()
  *   Decrement global statistics i.e. decrement the total count of number of
@@ -903,7 +853,7 @@ static inline psa_status_t psa_cs_num_file_dec( size_t data_length )
     if( psa_cs_init_fsm_state != PSA_CS_INIT_STATE_INITIALIZING )
     {
         /* common case */
-        status = psa_global_lock_take( &fd_lock );
+        status = psa_cs_lock_ofd_take( &fd_lock );
         if( status != PSA_SUCCESS )
         {
             psa_debug( "Error: unable to take lock (%d)\n", status);
@@ -911,7 +861,7 @@ static inline psa_status_t psa_cs_num_file_dec( size_t data_length )
         }
         psa_cs_num_file_objects--;
         psa_cs_total_size -= data_length;
-        status = psa_global_lock_give( &fd_lock );
+        status = psa_cs_lock_ofd_give( &fd_lock );
         if( status != PSA_SUCCESS )
         {
             psa_debug( "Error: unable to give lock (%d)\n", status);
@@ -1717,8 +1667,9 @@ err0:
 }
 
 /* FUNCTION: psa_cs_init()
- *  Start-up initialization function. This fucntion does not change the system initialisation
- *  state, or acquire the global lock.
+ *  Start-up initialization function. This function does not change the system
+ *  initialization state, or acquire the OFD lock. The global lock should be
+ *  held by the client of this function.
  */
 static psa_status_t psa_cs_init( void )
 {
@@ -1733,7 +1684,7 @@ static psa_status_t psa_cs_init( void )
     /* By default, make files rw only for the owner. */
     umask ( S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH );
 
-    /* - Check if sub-prefix directories (its, ps) for storing files have
+    /* - Check if sub-prefix directories (ITS, PS) for storing files have
      *   been created and if not create them.
      * - If the directory exists then count the number of file objects contained. */
     for( i = 0; i < PSA_CS_API_MAX; i++ )
@@ -1741,7 +1692,6 @@ static psa_status_t psa_cs_init( void )
         memset( &state, 0, sizeof( state ) );
         state.api = i;
         snprintf( state.dirname, PSA_CS_FILENAME_LENGTH, "%s%s", PSA_CS_PREFIX, api_prefix[i] );
-        /* take the global lock before checking and creating the storage directories */
         if( stat( state.dirname, &st ) == -1 )
         {
             /* Directory doesn't exist i.e. no objects have been created yet. */
@@ -1789,7 +1739,7 @@ static psa_status_t psa_cs_do_init( void )
         }
         /* In the case that tcontinue with processing (but system should be initialised) */
     }
-    status = psa_global_lock_take( &fd_lock );
+    status = psa_cs_lock_ofd_take( &fd_lock );
     if( status != PSA_SUCCESS )
     {
         psa_debug( "Error: failed to acquire global lock (%d)\n", status );
@@ -1805,12 +1755,12 @@ static psa_status_t psa_cs_do_init( void )
         {
             psa_debug( "Error: initialization failed (%d)\n", status );
             psa_cs_init_fsm_state = PSA_CS_INIT_STATE_FAILED;
-            psa_global_lock_give( &fd_lock );
+            psa_cs_lock_ofd_give( &fd_lock );
             goto exit;
         }
         psa_cs_init_fsm_state = PSA_CS_INIT_STATE_INITIALIZED;
     }
-    status = psa_global_lock_give( &fd_lock );
+    status = psa_cs_lock_ofd_give( &fd_lock );
     if( status != PSA_SUCCESS )
     {
         psa_debug( "Error: failed to release global lock (%d)\n", status );

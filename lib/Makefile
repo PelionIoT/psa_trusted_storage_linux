@@ -51,7 +51,7 @@ $(SRCS:.c=.d):%.d:%.c
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -MM $< >$@
 
 .c.o:
-	$(CC) -g3 -gstabs+ $(CFLAGS) $(LOCAL_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -c $< -o $@
 
 include $(SRCS:.c=.d)
 
