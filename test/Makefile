@@ -68,7 +68,7 @@ MBED_CRYPTO_PATCH4 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_
 # CFLAGS specified for building the PSA Storage library.
 # PSA_STORAGE_FILE_C_STORAGE_PREFIX defined to set
 # storage location for object files.
-PSA_CFLAGS="-DPSA_STORAGE_FILE_C_STORAGE_PREFIX='\"$(TEST_DIR)\"'"
+PSA_CFLAGS=-DPSA_STORAGE_FILE_C_STORAGE_PREFIX=$(TEST_DIR)
 
 # PSA_ARCH_TESTS_CMAKE_VERBOSE sets the verbosity of output on the
 # psa-arch-tests make. Uncomment this symbol to get vebose output
@@ -88,7 +88,7 @@ PSA_STORAGE_MULTI_THREAD_TEST_SCRIPT=psa_test_case_201.sh
 # PSA_STORAGE_FILE_C_STORAGE_PREFIX as part of the psa-storage build
 # configuration. This directory must be present if the PSA storage
 # library runs as part of an test binary, for example
-TEST_DIR="$(TOPDIR)/test/"
+TEST_DIR=$(TOPDIR)/test/
 
 TOPDIR = $(shell pwd)
 

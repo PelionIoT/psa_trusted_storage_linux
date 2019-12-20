@@ -55,7 +55,9 @@
  *   TID    Thread ID returned from syscall(SYS_gettid).
  * - UID    PSA storage unique file object ID (64 bit). */
 
-#define PSA_CS_PREFIX PSA_STORAGE_FILE_C_STORAGE_PREFIX
+#define PSA_CS_XSTR(__s) PSA_CS_STR(__s)
+#define PSA_CS_STR(__s) #__s
+#define PSA_CS_PREFIX PSA_CS_XSTR( PSA_STORAGE_FILE_C_STORAGE_PREFIX )
 
 /* PSA_CS_FILENAME_LOCK_OFD
  *   Name of the OFD lock file used to police access to shared
@@ -2397,7 +2399,7 @@ static psa_status_t psa_cs_test_init( uint32_t delete_files )
     struct dirent **list[] = { NULL, NULL, NULL, NULL };
     psa_cs_num_file_objects = PSA_CS_NUM_FILE_OBJECTS_SENTINEL;
     psa_cs_init_fsm_state = PSA_CS_INIT_STATE_UNINITIALIZED;
-    const unsigned int num_filters = sizeof(filters)/sizeof(filters[0]);
+    const int num_filters = sizeof(filters)/sizeof(filters[0]);
 
     psa_debug( " %s\n", "Entry" );
     /* remove any data object remaining */

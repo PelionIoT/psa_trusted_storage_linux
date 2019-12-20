@@ -24,7 +24,7 @@ TARGET_APP = psa-storage-example-app
 
 #CFLAGS ?= -g3 -gstabs+
 CFLAGS ?=
-LOCAL_CFLAGS ?= -Wall -W -Wdeclaration-after-statement -I../inc
+LOCAL_CFLAGS ?= -Wall -Wextra -Werror -I../inc
 LOCAL_LDFLAGS = ../lib/libpsastorage.a -lpthread
 
 SRCS = main.c

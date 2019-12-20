@@ -20,7 +20,7 @@ RM = rm -f
 
 #CFLAGS ?= -g3 -gstabs+
 CFLAGS ?=
-LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
+LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -Werror -I../inc
 LOCAL_LDFLAGS ?= -shared -lpthread
 LOCAL_ARFLAGS ?= rcs
 TARGET_NAME = libpsastorage
