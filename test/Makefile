@@ -7,44 +7,8 @@
 #
 # <topdir>/test/Makefile
 #  Makefile to build the PSA storage x86 test binaries.
+#  See <topdir>/test/README.md for further information.
 #
-# This makefile provides support for building the x86 PSA storage tests:
-#  - psa-arch-test-ps, a test binary generated from the PSA Compliance project
-#    psa-arch-test.
-#  - psa_trusted_storage_linux test binaries (derived from the mbed-crypto
-#    tests)
-#
-# (WARNING: Public users will be unable to use this makefile to generate
-# psa-arch-test-ps due to repo access restrictions. However, other test
-# binaries can be generated. See later for more details.)
-#
-# In order to run the above, use this makefile in the following way:
-#  1. Copy this makefile into a new top level workspace directory TOPDIR.
-#  2. cd into TOPDIR and invoke the following commands.
-#  3. make ws-create-pinned
-#  4. make
-#  5. make test
-#
-# Item 3 above git clones the relevant repositories at compatible pinned versions.
-# The projects of interest are:
-#  - https://github.com/ARMmbed/psa_trusted_storage_linux.
-#  - https://github.com/ARMmbed/mbed-crypto.
-#  - A private fork of https://github.com/ARM-software/psa-arch-tests. The private
-#    fork contains patches against upstream so that psa-arch-tests-ps can be built.
-#    The fork is accessible to ARM stakeholders for internal development. In time,
-#    the patches will be upstreamed and become publicly availble.
-#    **** WARNING ****
-#
-# Item 4 above builds test binaries. ARM developers can build all test binaries
-# including psa-arch-tests-ps by using the following command:
-#  - make all-arm
-#
-# Item 5 above runs the test binaries and outputs the test trace to the console.
-#
-# The following tools are required on the host and available on the path:
-# - git
-# - repo
-# - host gcc compiler.
 ###############################################################################
 
 CFLAGS="-I$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -I$(TOPDIR)/$(PSA_STORAGE_DIR)/configs -DMBEDTLS_CONFIG_FILE='<mbed_crypto_psa_storage_config.h>'"
