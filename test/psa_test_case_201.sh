@@ -11,6 +11,11 @@
 # concurrent execution contexts using the PSA Storage library and sharing the
 # storage area co-exist with one another without one process causing error for
 # another process.
+#
+# This script is intended to be run as part of x86 testing where an x86
+# version of the test binary PSA_STORAGE_TEST_BIN is run. PSA_STORAGE_TEST_BIN
+# implements the test cases. PSA_STORAGE_TEST_BIN can also be built and run
+# on the target.
 ###############################################################################
 
 # Symbols to define the Linux user accounts used to run the applications.
