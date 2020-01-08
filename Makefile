@@ -13,9 +13,9 @@
 # <topdir>/Makefile
 #  Top level Makefile to build the libpsastorage project
 
-major = 1
+major = 0
 minor = 0
-rel = 1
+rel = 2
 prefix_default = usr
 prefix ?= /$(prefix_default)/local
 bindir ?= $(prefix)/bin
