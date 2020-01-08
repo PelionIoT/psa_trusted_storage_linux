@@ -1662,7 +1662,7 @@ int main( int argc, const char *argv[] )
             NULL
             };
 
-    const char* tc_description[] = {
+    static const char* tc_description[] = {
           /* 01234567890123456789012345678901234567890123456789012345678901234567890123456789  */
             "TC001: Rcvr .dat (0 .dat, 2 .bak, F_WRITE_ONCE unset)                  %s\n",
             "TC002: Rcvr .dat from 0 dat, 1 .bak, F_WRITE_ONCE unset                %s\n",
