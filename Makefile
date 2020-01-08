@@ -13,6 +13,9 @@
 # <topdir>/Makefile
 #  Top level Makefile to build the libpsastorage project
 
+major = 1
+minor = 0
+rel = 1
 prefix_default = usr
 prefix ?= /$(prefix_default)/local
 bindir ?= $(prefix)/bin
@@ -20,9 +23,6 @@ libdir ?= $(prefix)/lib
 systemd_system_unitdir ?= "$(libdir)/systemd/system"
 includedir ?= $(prefix)/include
 PSA_INCLUDEDIR = $(includedir)/psa
-major ?= 1
-minor ?= 0
-rel  ?= 0
 
 # tool symbols
 INSTALL = install
