@@ -384,6 +384,7 @@ static int psa_cs_dat_file_filter( const struct dirent *dir )
     return psa_core_file_filter( dir, PSA_CS_DATA_FILE_SUFFIX );
 }
 
+#ifdef PSA_STORAGE_TEST
 static int psa_cs_tmp_lck_file_filter_core( const struct dirent *dir, const char *suffix )
 {
     char tmps_filter[PSA_CS_TMP_FILENAME_LENGTH];
@@ -407,6 +408,7 @@ static int psa_cs_tmp_lck_file_filter_core( const struct dirent *dir, const char
     }
     return 0;
 }
+#endif
 
 static int psa_cs_tmp_file_filter( const struct dirent *dir )
 {
@@ -418,6 +420,7 @@ static int psa_cs_lck_file_filter( const struct dirent *dir )
     return psa_core_file_filter( dir, PSA_CS_LOCK_FILE_SUFFIX );
 }
 
+#ifdef PSA_STORAGE_TEST
 static int psa_cs_tmp_file_filter_ex( const struct dirent *dir )
 {
     return psa_cs_tmp_lck_file_filter_core( dir, PSA_CS_TEMP_FILE_SUFFIX );
@@ -427,6 +430,7 @@ static int psa_cs_lck_file_filter_ex( const struct dirent *dir )
 {
     return psa_cs_tmp_lck_file_filter_core( dir, PSA_CS_LOCK_FILE_SUFFIX );
 }
+#endif
 
 static int psa_cs_bad_file_filter( const struct dirent *dir )
 {
@@ -1738,11 +1742,11 @@ static psa_status_t psa_cs_do_init( void )
         if( tid == psa_cs_init_tid )
         {
             /* Initialization processing has called recursively to this function
-             * and process should be alloced to continue (the global lock is already held). */
+             * and process should be allowed to continue (the global lock is already held). */
             psa_debug( "%s\n", "Initializing. Return to avoid recursive calling" );
             return PSA_SUCCESS;
         }
-        /* In the case that tcontinue with processing (but system should be initialised) */
+        /* Continue with processing (but system should be initialised) */
     }
     status = psa_cs_lock_ofd_take( &fd_lock );
     if( status != PSA_SUCCESS )

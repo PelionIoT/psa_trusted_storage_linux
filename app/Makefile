@@ -22,10 +22,12 @@ RM = rm -f
 TARGET_APP = psa-storage-example-app
 
 
-#CFLAGS ?= -g3 -gstabs+
-CFLAGS ?=
-LOCAL_CFLAGS ?= -Wall -Wextra -I../inc
-LOCAL_LDFLAGS = ../lib/libpsastorage.a -lpthread
+LOCAL_CFLAGS = -Wall -Wextra -I../inc
+LOCAL_LDFLAGS = ../lib/libpsastorage.a
+ifeq ($(PSA_STORAGE_TEST),1)
+LOCAL_LDFLAGS += -lpthread
+CFLAGS += -DPSA_STORAGE_TEST
+endif
 
 SRCS = main.c
 OBJS = $(SRCS:.c=.o)

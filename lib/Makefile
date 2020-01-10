@@ -18,11 +18,13 @@ INSTALL = install
 RM = rm -f
 
 
-#CFLAGS ?= -g3 -gstabs+
-CFLAGS ?=
-LOCAL_CFLAGS ?= -fPIC -Wall -Wextra -I../inc
-LOCAL_LDFLAGS ?= -shared -lpthread
-LOCAL_ARFLAGS ?= rcs
+LOCAL_CFLAGS = -fPIC -Wall -Wextra -I../inc
+LOCAL_LDFLAGS = -shared
+ifeq ($(PSA_STORAGE_TEST),1)
+LOCAL_LDFLAGS += -lpthread
+CFLAGS += -DPSA_STORAGE_TEST
+endif
+LOCAL_ARFLAGS = rcs
 TARGET_NAME = libpsastorage
 
 SOLINKERNAME = $(TARGET_NAME).so
