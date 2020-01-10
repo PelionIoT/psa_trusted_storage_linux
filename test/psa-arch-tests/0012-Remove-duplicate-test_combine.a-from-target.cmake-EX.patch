@@ -1,0 +1,25 @@
+From e07dce1f497f5e0f262530add210e82e799b0040 Mon Sep 17 00:00:00 2001
+From: Simon Hughes <simon.hughes@arm.com>
+Date: Mon, 18 Nov 2019 11:04:57 +0000
+Subject: [PATCH 12/15] Remove duplicate test_combine.a from target.cmake
+ EXE_LIBS list.
+
+---
+ api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
+index 3702e4b..1c7400d 100644
+--- a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
++++ b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
+@@ -51,7 +51,6 @@ function(_create_psa_storage_exe _exe_name _api_dir)
+ 
+ 	# Create list of libraries to link to test binary
+ 	list(APPEND EXE_LIBS
+-		${PROJECT_BINARY_DIR}/dev_apis/${_api_dir}/test_combine.a
+ 		${PROJECT_BINARY_DIR}/val/val_nspe.a
+ 		${PROJECT_BINARY_DIR}/platform/pal_nspe.a
+ 		${PROJECT_BINARY_DIR}/dev_apis/${_api_dir}/test_combine.a
+-- 
+2.7.4
+

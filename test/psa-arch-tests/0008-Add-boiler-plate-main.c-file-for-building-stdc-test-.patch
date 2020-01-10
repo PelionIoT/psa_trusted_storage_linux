@@ -1,0 +1,38 @@
+From cbdae89afdc165af8bd628f4c4810e6f680646fe Mon Sep 17 00:00:00 2001
+From: Simon Hughes <simon.hughes@arm.com>
+Date: Fri, 27 Sep 2019 13:31:28 +0100
+Subject: [PATCH 08/15] Add boiler-plate main.c file for building stdc test
+ executables.
+
+The following provides more information on this commit:
+- In order for the stdc target to build an executable test binary this main.c
+  is required to call the val_entry() function. It can be used to build CRYPTO,
+  PROTECTED_STORAGE and INTERNAL_TRUSTED_STORAGE test executables, for example.
+---
+ .../platform/targets/tgt_dev_apis_stdc/nspe/common/main.c  | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+ create mode 100644 api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/main.c
+
+diff --git a/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/main.c b/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/main.c
+new file mode 100644
+index 0000000..25ff9f7
+--- /dev/null
++++ b/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/main.c
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (c) 2019 ARM Ltd.
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <stdint.h>
++
++int32_t val_entry(void);
++
++int main(int argc, char**argv)
++{  
++    return val_entry();
++}
+-- 
+2.7.4
+

@@ -1,0 +1,33 @@
+From b95d19ea115d7df1bdb8f48e942c656f14054b4a Mon Sep 17 00:00:00 2001
+From: Simon Hughes <simon.hughes@arm.com>
+Date: Wed, 2 Oct 2019 13:34:07 +0100
+Subject: [PATCH 06/15] Fix target.cmake to enable PSA storage testing.
+
+---
+ api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
+index 38e4db2..3240926 100644
+--- a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
++++ b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cmake
+@@ -44,10 +44,14 @@ if(${SUITE} STREQUAL "CRYPTO")
+ 	)
+ endif()
+ if(${SUITE} STREQUAL "PROTECTED_STORAGE")
+-	message(FATAL_ERROR "Protected Storage not supported")
++  list(APPEND PAL_SRC_C_NSPE
++    ${PSA_ROOT_DIR}/platform/targets/${TARGET}/nspe/protected_storage/pal_protected_storage_intf.c
++    )
+ endif()
+ if(${SUITE} STREQUAL "INTERNAL_TRUSTED_STORAGE")
+-	message(FATAL_ERROR "Internal Trusted Storage not support")
++  list(APPEND PAL_SRC_C_NSPE
++    ${PSA_ROOT_DIR}/platform/targets/${TARGET}/nspe/internal_trusted_storage/pal_internal_trusted_storage_intf.c
++    )
+ endif()
+ if(${SUITE} STREQUAL "INITIAL_ATTESTATION")
+ 	message(FATAL_ERROR "Initial attestation not supported")
+-- 
+2.7.4
+

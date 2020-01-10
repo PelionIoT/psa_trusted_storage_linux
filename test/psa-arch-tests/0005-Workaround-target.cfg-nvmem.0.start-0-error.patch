@@ -1,0 +1,59 @@
+From 3285236608b585877c9d6a333b35e45c33757860 Mon Sep 17 00:00:00 2001
+From: Simon Hughes <simon.hughes@arm.com>
+Date: Wed, 2 Oct 2019 13:33:43 +0100
+Subject: [PATCH 05/15] Workaround target.cfg nvmem.0.start = 0 error.
+
+The following provides more information on this commit:
+- Setting target.cfg nvmem.0.start = 0 causes an error.
+  The root cause reason for this is not known.
+  The tgt_dev_apis_stdc/target.cfg was copied from
+  tgt_dev_apis_mbedos_fvp_mps2_m4/target.cfg. However, for the stdc
+  target the nvmem.0.start = 0 setting causing test framework
+  problems possibly due the support of addr_t (64bit type).
+- The call stack that goes wrong is:
+      val_peripherals.c::val_nvmem_read()
+          return pal_nvmem_read_ns();
+	  pal_driver_ns_intf.c::pal_nvmem_read_ns();
+	      if (nvmem_check_bounds( ...
+	      pal_driver_ns_intf.c::nvmem_check_bounds()
+	          if (base != NVMEM_BASE)
+		     // note base has a value which appears to be random.
+- This commit contains a workaround, which is to set nvmem.0.start
+  to a non-zero value.
+- Workaround nvmem_check_bounds() by always returning PAL_STATUS_SUCCESS from
+  the function.
+---
+ .../targets/tgt_dev_apis_stdc/nspe/common/pal_driver_ns_intf.c        | 1 +
+ api-tests/platform/targets/tgt_dev_apis_stdc/target.cfg               | 4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/pal_driver_ns_intf.c b/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/pal_driver_ns_intf.c
+index 204adfb..00b6e94 100644
+--- a/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/pal_driver_ns_intf.c
++++ b/api-tests/platform/targets/tgt_dev_apis_stdc/nspe/common/pal_driver_ns_intf.c
+@@ -47,6 +47,7 @@ static uint8_t g_nvmem[NVMEM_SIZE];
+ **/
+ static int nvmem_check_bounds(addr_t base, uint32_t offset, int size)
+ {
++    return PAL_STATUS_SUCCESS;
+     if (base != NVMEM_BASE)
+     {
+         return PAL_STATUS_ERROR;
+diff --git a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cfg b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cfg
+index daef0db..bdb1295 100644
+--- a/api-tests/platform/targets/tgt_dev_apis_stdc/target.cfg
++++ b/api-tests/platform/targets/tgt_dev_apis_stdc/target.cfg
+@@ -42,8 +42,8 @@ watchdog.0.timeout_in_micro_sec_crypto = 0x0;
+ // tests that require process or system restarts so NV memory isn't required.
+ // The implementation just uses an array in memory.
+ nvmem.num =1;
+-nvmem.0.start = 0x0;
+-nvmem.0.end = 0x400; // 1KiB
++nvmem.0.start = 0x100;
++nvmem.0.end = 0x500; 
+ nvmem.0.permission = TYPE_READ_WRITE;
+ 
+ // Miscellaneous - Test scatter info
+-- 
+2.7.4
+

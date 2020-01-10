@@ -1,0 +1,69 @@
+From ac04bcc10a458b15c63b343758bf2f62ce423cc9 Mon Sep 17 00:00:00 2001
+From: Simon Hughes <simon.hughes@arm.com>
+Date: Wed, 2 Oct 2019 14:00:18 +0100
+Subject: [PATCH 01/15] Fix PSA storage Test 408 - Invalid offset check.
+
+The following provides more information about this commit:
+- SST_FUNCTION() macro uses variadic functions. Use of this macro
+  resets data_len = 0 after use, for an unknown reason. data_len
+  is then used in test checkpoints which fail as its value is not
+  as expected.
+- This commit implements workarounds to recalculate data_len
+  before making the test checkpoints.
+---
+ .../internal_trusted_storage/test_s008/test_s008.c      | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/api-tests/dev_apis/internal_trusted_storage/test_s008/test_s008.c b/api-tests/dev_apis/internal_trusted_storage/test_s008/test_s008.c
+index 9050b8a..2188ebe 100755
+--- a/api-tests/dev_apis/internal_trusted_storage/test_s008/test_s008.c
++++ b/api-tests/dev_apis/internal_trusted_storage/test_s008/test_s008.c
+@@ -89,12 +89,14 @@ int32_t psa_sst_valid_offset_success(caller_security_t caller)
+     uint32_t status, data_len, offset = TEST_BUFF_SIZE;
+     uint32_t p_data_length = 0;
+ 
++    /* Use for test failure workaround to take copy of data_len */
++    uint32_t data_len_copy = 0;
++
+     /* Set data for UID */
+     status = SST_FUNCTION(s008_data[1].api, uid, TEST_BUFF_SIZE, write_buff, PSA_STORAGE_FLAG_NONE);
+     TEST_ASSERT_EQUAL(status, s008_data[1].status, TEST_CHECKPOINT_NUM(1));
+ 
+     /* Case where offset + datalen =  data_size */
+-    val->print(PRINT_TEST, "[Check 1] Try to access data with varying valid offset\n", 0);
+     while (offset > 0)
+     {
+          data_len = TEST_BUFF_SIZE - offset;
+@@ -102,6 +104,12 @@ int32_t psa_sst_valid_offset_success(caller_security_t caller)
+          status = SST_FUNCTION(s008_data[2].api, uid, offset, data_len, read_buff, &p_data_length);
+          TEST_ASSERT_EQUAL(status, s008_data[2].status, TEST_CHECKPOINT_NUM(2));
+          TEST_ASSERT_MEMCMP(read_buff, write_buff + offset, data_len, TEST_CHECKPOINT_NUM(3));
++
++         /* SST_FUNCTION() variadic function macro has side effect of
++          * setting seting data_len = 0. Work around this problem by
++          * recalculating data_len before testing.
++          */
++         data_len = TEST_BUFF_SIZE - offset;
+          TEST_ASSERT_EQUAL(p_data_length, data_len, TEST_CHECKPOINT_NUM(4));
+          offset >>= 1;
+      }
+@@ -111,9 +119,16 @@ int32_t psa_sst_valid_offset_success(caller_security_t caller)
+     /* Case where offset + datalen <  data_size */
+     while (offset > 0)
+     {
++        /* SST_FUNCTION() variadic function macro seems to have side effect of
++         * setting seting data_len = 0. Work around this problem by testing copy
++         * of data_len, rather than the data_len supplied to SST_FUNCTION().
++         */
++         data_len_copy = data_len;
+          status = SST_FUNCTION(s008_data[4].api, uid, offset, data_len, read_buff, &p_data_length);
+          TEST_ASSERT_EQUAL(status, s008_data[4].status, TEST_CHECKPOINT_NUM(5));
+          TEST_ASSERT_MEMCMP(read_buff, write_buff + offset, data_len, TEST_CHECKPOINT_NUM(6));
++         /* set data_len back to value copied earlier*/
++         data_len = data_len_copy;
+          TEST_ASSERT_EQUAL(p_data_length, data_len, TEST_CHECKPOINT_NUM(7));
+          offset >>= 1;
+          data_len <<= 1;
+-- 
+2.7.4
+

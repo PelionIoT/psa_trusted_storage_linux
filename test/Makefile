@@ -11,9 +11,10 @@
 #
 ###############################################################################
 
+PREFIX=usr/local
 CFLAGS="-I$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -I$(TOPDIR)/$(PSA_STORAGE_DIR)/configs -DMBEDTLS_CONFIG_FILE='<mbed_crypto_psa_storage_config.h>'"
-LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib
-LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib -lpsastorage"
+LD_LIBRARY_PATH=$(TOPDIR)/mbed-crypto/library/:$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib
+LDFLAGS="-L$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)/lib -lpsastorage"
 
 # MBED_CRYPTO_PATCHXxx are the symbols used to manage patching mbed-crypto
 # to leverage mbed-crypto tests for PSA storage testing.
@@ -28,6 +29,10 @@ MBED_CRYPTO_PATCH1 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_
 MBED_CRYPTO_PATCH2 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_CRYPTO_PATCH2_NAME)
 MBED_CRYPTO_PATCH3 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_CRYPTO_PATCH3_NAME)
 MBED_CRYPTO_PATCH4 = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_CRYPTO_DIR)/$(MBED_CRYPTO_PATCH4_NAME)
+
+# PSA_ARCH_TESTS patches. 
+PSA_ARCH_TESTS_PATCH1_NAME = 0001-Fix-PSA-storage-Test-408-Invalid-offset-check.patch
+PSA_ARCH_TESTS_PATCH_DIR = $(TOPDIR)/$(PSA_STORAGE_DIR)/test/$(PSA_ARCH_TESTS_DIR)/
 
 # CFLAGS specified for building the PSA Storage library.
 # PSA_STORAGE_FILE_C_STORAGE_PREFIX defined to set
@@ -68,10 +73,7 @@ PSA_CRYPTO_LIB_FILENAME=$(TOPDIR)/$(PSA_CRYPTO_DIR)/library/libmbedcrypto.a
 # Standard targets
 ###############################################################################
 .PHONY: all
-all: mbed-crypto
-
-.PHONY: all-arm
-all-arm: psa-arch-tests-ps
+all: mbed-crypto psa-arch-tests-ps
 
 .PHONY: clean
 clean: mbed-crypto-clean psa-storage-clean test-clean psa-arch-tests-ps-clean test-clean
@@ -87,9 +89,8 @@ test-clean:
 	rm -fR $(TOPDIR)/test
 
 # Target to create directory for PSA storage file objects
-.PHONY: $(TEST_DIR)
 $(TEST_DIR):
-	-mkdir $(TEST_DIR)
+	mkdir $(TEST_DIR)
 
 ###############################################################################
 # mbed-crypto targets
@@ -143,7 +144,7 @@ test-mbed-crypto-key: $(TEST_DIR)
 ###############################################################################
 .PHONY: psa-storage
 psa-storage:
-	make -C $(PSA_STORAGE_DIR) CFLAGS=$(PSA_CFLAGS)
+	make -C $(PSA_STORAGE_DIR) CFLAGS=$(PSA_CFLAGS) prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)
 
 .PHONY: psa-storage-clean
 psa-storage-clean:
@@ -151,7 +152,7 @@ psa-storage-clean:
 
 .PHONY: psa-storage-install
 psa-storage-install: psa-storage
-	make -C $(PSA_STORAGE_DIR) install prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local
+	make -C $(PSA_STORAGE_DIR) install prefix=$(TOPDIR)/$(PSA_STORAGE_DIR)/$(PREFIX)
 
 .PHONY: test-psa-storage-app
 test-psa-storage-app: $(TEST_DIR) psa-storage
@@ -173,22 +174,14 @@ ws-manifest:
 # Target to create a workspace for development (from the unpinned manifest)
 .PHONY: ws-create
 ws-create:
-	repo init -u https://github.com/armmbed/mbl-manifest
-	git clone -b $(PSA_STORAGE_REPO_BRANCH) git@github.com:armmbed/psa_trusted_storage_linux psa_trusted_storage_linux_create_clone
-	cp $(TOPDIR)/psa_trusted_storage_linux_create_clone/test/$(PSA_STORAGE_MANIFEST_NAME) $(TOPDIR)/.repo/manifests
-	repo init -m $(PSA_STORAGE_MANIFEST_NAME)
+	repo init -u https://github.com/ARMmbed/psa_trusted_storage_linux -m test/$(PSA_STORAGE_MANIFEST_NAME)
 	repo sync
-	rm -fR $(TOPDIR)/psa_trusted_storage_linux_create_clone
 
 # Target to create a workspace for testing latest known good version (pinned manifest)
 .PHONY: ws-create-pinned
 ws-create-pinned:
-	repo init -u https://github.com/armmbed/mbl-manifest
-	git clone -b $(PSA_STORAGE_REPO_BRANCH) git@github.com:armmbed/psa_trusted_storage_linux psa_trusted_storage_linux_create_clone
-	cp $(TOPDIR)/psa_trusted_storage_linux_create_clone/test/$(PSA_STORAGE_PINNED_MANIFEST_NAME) $(TOPDIR)/.repo/manifests
-	repo init -m $(PSA_STORAGE_PINNED_MANIFEST_NAME)
+	repo init -u https://github.com/ARMmbed/psa_trusted_storage_linux -m test/$(PSA_STORAGE_PINNED_MANIFEST_NAME)
 	repo sync
-	rm -fR $(TOPDIR)/psa_trusted_storage_linux_create_clone
 
 # Target to delete the workspace.
 .PHONY: ws-delete
@@ -204,9 +197,8 @@ ws-delete:
 ###############################################################################
 # Target to build psa-arch-tests protected storage test binary
 .PHONY: psa-arch-tests-ps
-psa-arch-tests-ps: mbed-crypto psa-storage-install $(TOPDIR)/psa-arch-tests/api-tests/build-ps $(TOPDIR)/psa-arch-tests/api-tests/build-ps/CMakeFiles main.o
+psa-arch-tests-ps: mbed-crypto psa-storage-install $(TOPDIR)/psa-arch-tests/api-tests/build-ps $(TOPDIR)/psa-arch-tests/api-tests/build-ps/CMakeFiles $(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_PATCH1_NAME)
 	cd psa-arch-tests/api-tests/build-ps && cmake --build . -- VERBOSE=$(PSA_ARCH_TESTS_CMAKE_VERBOSE)
-	cd psa-arch-tests/api-tests/build-ps && gcc -o psa-arch-tests-ps $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o ./dev_apis/protected_storage/test_combine.a ./val/val_nspe.a ./platform/pal_nspe.a ./dev_apis/protected_storage/test_combine.a $(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib/libpsastorage.so
 
 # Target to create psa-arch-tests protected storage build directory
 $(TOPDIR)/psa-arch-tests/api-tests/build-ps:
@@ -214,7 +206,7 @@ $(TOPDIR)/psa-arch-tests/api-tests/build-ps:
 
 # Target to invoke psa-arch-tests protected storage cmake configuration.
 $(TOPDIR)/psa-arch-tests/api-tests/build-ps/CMakeFiles:
-	cd psa-arch-tests/api-tests/build-ps && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=PROTECTED_STORAGE -DPSA_INCLUDE_PATHS=$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -DCPU_ARCH=armv7m
+	cd psa-arch-tests/api-tests/build-ps && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=PROTECTED_STORAGE -DPSA_INCLUDE_PATHS=$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -DCPU_ARCH=armv7m -DPSA_STORAGE_LIB_FILENAME=$(PSA_STORAGE_LIB_FILENAME)
 
 # Target to psa-arch-tests protected storage test binary build
 .PHONY: psa-arch-tests-ps-build
@@ -225,16 +217,47 @@ psa-arch-tests-ps-build:
 .PHONY: psa-arch-tests-ps-clean
 psa-arch-tests-ps-clean:
 	rm -fR $(TOPDIR)/psa-arch-tests/api-tests/build-ps
-	rm -fR $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o
-
-# Target to compile boiler-plate main.c for linking with psa-arch-tests libraries.
-main.o:
-	gcc -Wall -Werror -c -o $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.c
 
 # Target to run psa-arch-tests protected storage test binary.
 .PHONY: test-psa-arch-tests-ps
 test-psa-arch-tests-ps: $(TEST_DIR) psa-arch-tests-ps
 	-$(TOPDIR)/psa-arch-tests/api-tests/build-ps/psa-arch-tests-ps
+
+$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_PATCH1_NAME):
+	cp $(PSA_ARCH_TESTS_PATCH_DIR)/* $(PSA_ARCH_TESTS_DIR)
+	cd $(PSA_ARCH_TESTS_DIR) && git checkout f150147647fd6c86638fd94efb8c57103d9d5c0c
+	cd $(PSA_ARCH_TESTS_DIR) && git am *.patch && cd ..
+
+###############################################################################
+# PSA Compliance psa-arch-tests-its protected storage test binary targets
+###############################################################################
+# Target to build psa-arch-tests protected storage test binary
+.PHONY: psa-arch-tests-its
+psa-arch-tests-its: mbed-crypto psa-storage-install $(TOPDIR)/psa-arch-tests/api-tests/build-its $(TOPDIR)/psa-arch-tests/api-tests/build-its/CMakeFiles
+	cd psa-arch-tests/api-tests/build-its && cmake --build . -- VERBOSE=$(PSA_ARCH_TESTS_CMAKE_VERBOSE)
+
+# Target to create psa-arch-tests protected storage build directory
+$(TOPDIR)/psa-arch-tests/api-tests/build-its:
+	mkdir $(TOPDIR)/psa-arch-tests/api-tests/build-its
+
+# Target to invoke psa-arch-tests protected storage cmake configuration.
+$(TOPDIR)/psa-arch-tests/api-tests/build-its/CMakeFiles:
+	cd psa-arch-tests/api-tests/build-its && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=INTERNAL_TRUSTED_STORAGE -DPSA_INCLUDE_PATHS=$(TOPDIR)/$(PSA_STORAGE_DIR)/inc -DCPU_ARCH=armv7m -DPSA_STORAGE_LIB_FILENAME=$(PSA_STORAGE_LIB_FILENAME)
+
+# Target to psa-arch-tests protected storage test binary build
+.PHONY: psa-arch-tests-its-build
+psa-arch-tests-its-build:
+	cd $(TOPDIR)/psa-arch-tests/api-tests/build-its && cmake --build .
+
+# Target to delete the psa-arch-tests-its build directory and other artifacts
+.PHONY: psa-arch-tests-its-clean
+psa-arch-tests-its-clean:
+	rm -fR $(TOPDIR)/psa-arch-tests/api-tests/build-its
+
+# Target to run psa-arch-tests protected storage test binary.
+.PHONY: test-psa-arch-tests-its
+test-psa-arch-tests-its: $(TEST_DIR) psa-arch-tests-its
+	$(TOPDIR)/psa-arch-tests/api-tests/build-its/psa-arch-tests-its
 
 ###############################################################################
 # PSA Compliance psa-arch-tests-crypto crypto test binary targets
@@ -242,9 +265,8 @@ test-psa-arch-tests-ps: $(TEST_DIR) psa-arch-tests-ps
 ###############################################################################
 # Target to build psa-arch-tests crypto test binary
 .PHONY: psa-arch-tests-crypto
-psa-arch-tests-crypto: mbed-crypto-for-psa-arch-tests $(TOPDIR)/psa-arch-tests/api-tests/build-crypto $(TOPDIR)/psa-arch-tests/api-tests/build-crypto/CMakeFiles main.o
+psa-arch-tests-crypto: mbed-crypto-for-psa-arch-tests $(TOPDIR)/psa-arch-tests/api-tests/build-crypto $(TOPDIR)/psa-arch-tests/api-tests/build-crypto/CMakeFiles
 	cd psa-arch-tests/api-tests/build-crypto && cmake --build .
-	cd psa-arch-tests/api-tests/build-crypto && gcc -o psa-arch-tests-crypto $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o ./dev_apis/crypto/test_combine.a ./val/val_nspe.a ./platform/pal_nspe.a ./dev_apis/crypto/test_combine.a $(TOPDIR)/mbed-crypto/library/libmbedcrypto.a $(TOPDIR)/$(PSA_STORAGE_DIR)/usr/local/lib/libpsastorage.so
 
 # Target to create psa-arch-tests crypto build directory
 $(TOPDIR)/psa-arch-tests/api-tests/build-crypto:
@@ -252,7 +274,7 @@ $(TOPDIR)/psa-arch-tests/api-tests/build-crypto:
 
 # Target to invoke psa-arch-tests crypto cmake configuration.
 $(TOPDIR)/psa-arch-tests/api-tests/build-crypto/CMakeFiles:
-	cd psa-arch-tests/api-tests/build-crypto && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=CRYPTO -DPSA_INCLUDE_PATHS=$(TOPDIR)/mbed-crypto/include -DCPU_ARCH=armv7m
+	cd psa-arch-tests/api-tests/build-crypto && cmake ../ -DTOOLCHAIN=HOST_GCC -DTARGET=tgt_dev_apis_stdc -DSUITE=CRYPTO -DPSA_INCLUDE_PATHS=$(TOPDIR)/mbed-crypto/include -DCPU_ARCH=armv7m  -DPSA_STORAGE_LIB_FILENAME=$(PSA_STORAGE_LIB_FILENAME) -DPSA_CRYPTO_LIB_FILENAME=$(PSA_CRYPTO_LIB_FILENAME) 
 
 # Target to psa-arch-tests crypto test binary build
 .PHONY: psa-arch-tests-crypto-build
@@ -263,7 +285,6 @@ psa-arch-tests-crypto-build:
 .PHONY: psa-arch-tests-crypto-clean
 psa-arch-tests-crypto-clean:
 	rm -fR $(TOPDIR)/psa-arch-tests/api-tests/build-crypto
-	rm -fR $(TOPDIR)/$(PSA_ARCH_TESTS_DIR)/$(PSA_ARCH_TESTS_MAIN_C_PATH)/main.o
 
 # Target to run psa-arch-tests crypto test binary.
 .PHONY: test-psa-arch-tests-crypto
