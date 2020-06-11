@@ -1599,7 +1599,7 @@ psa_status_t psa_cs_remove( psa_storage_uid_t uid, psa_cs_api_t api )
     psa_status_t status = PSA_ERROR_STORAGE_FAILURE;
     char filename[PSA_CS_FILENAME_LENGTH];
     char bak_filename[PSA_CS_FILENAME_LENGTH];
-    FILE *stream;
+    FILE *stream = NULL;
     struct psa_storage_info_t info;
     uint32_t get_filename_flags = PSA_CS_GET_FILENAME_F_NONE;
 
